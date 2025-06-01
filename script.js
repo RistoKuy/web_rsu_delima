@@ -397,12 +397,19 @@ function handleLogin(event) {
                 // Redirect to admin console
                 window.location.href = 'admin/admin_index.html';
                 return;
-                
-            case 'doctor':
-                // For now, redirect to patient view (can be extended later)
-                showModal('Info', 'Panel dokter sedang dalam pengembangan. Silakan gunakan akses pasien untuk sementara.', [
-                    { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
-                ]);
+                  case 'doctor':
+                // Store doctor session
+                sessionStorage.setItem('userRole', 'dokter');
+                sessionStorage.setItem('userData', JSON.stringify({
+                    id: 1,
+                    email: email,
+                    name: 'Dr. Ahmad Subarjo',
+                    specialization: 'Dokter Umum',
+                    polyclinic: 'Umum',
+                    role: 'dokter'
+                }));
+                // Redirect to doctor dashboard
+                window.location.href = 'dokter/dokter_index.html';
                 return;
                 
             default: // patient
