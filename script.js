@@ -157,6 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
             showView('login');
         }
     }, 2000);
+    
+    // Initialize responsive navigation
+    handleResponsiveNavigation();
 });
 
 // Navigation Functions
@@ -194,13 +197,18 @@ function showView(viewName) {
 function showNavigation() {
     const desktopNav = document.getElementById('desktopNavbar');
     const mobileBottomNav = document.getElementById('mobileBottomNav');
+    const isMobile = window.innerWidth < 768; // md breakpoint
     
     if (desktopNav && mobileBottomNav) {
-        // Desktop navigation (hidden on mobile)
-        desktopNav.classList.remove('hidden');
-        
-        // Mobile bottom navigation (hidden on desktop)
-        mobileBottomNav.classList.remove('hidden');
+        if (isMobile) {
+            // Mobile view: hide desktop nav, show mobile nav
+            desktopNav.classList.add('hidden');
+            mobileBottomNav.classList.remove('hidden');
+        } else {
+            // Desktop view: show desktop nav, hide mobile nav
+            desktopNav.classList.remove('hidden');
+            mobileBottomNav.classList.add('hidden');
+        }
         
         // Update active navigation items
         updateActiveNavItems();
@@ -215,6 +223,9 @@ function hideNavigation() {
             element.classList.add('hidden');
         }
     });
+    
+    // Restore body scroll if mobile menu was open
+    document.body.style.overflow = '';
 }
 
 function updateNavigation() {
@@ -223,6 +234,8 @@ function updateNavigation() {
         hideNavigation();
     } else {
         showNavigation();
+        // Ensure responsive navigation is properly set
+        handleResponsiveNavigation();
     }
 }
 
@@ -953,4 +966,48 @@ function formatDateForInput(date) {
 function getDayName(dayIndex) {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[dayIndex];
+}
+
+// Responsive Navigation Handler
+function handleResponsiveNavigation() {
+    // Handle window resize to adjust navigation visibility
+    function adjustNavigationForScreenSize() {
+        const desktopNav = document.getElementById('desktopNavbar');
+        const mobileBottomNav = document.getElementById('mobileBottomNav');
+        const isMobile = window.innerWidth < 768; // md breakpoint
+        
+        // Only adjust if user is authenticated (not on login/signup pages)
+        const authViews = ['login', 'signup'];
+        if (!authViews.includes(appState.currentView)) {
+            if (isMobile) {
+                // Mobile view: hide desktop nav, show mobile nav
+                if (desktopNav) {
+                    desktopNav.classList.add('hidden');
+                }
+                if (mobileBottomNav) {
+                    mobileBottomNav.classList.remove('hidden');
+                }
+            } else {
+                // Desktop view: show desktop nav, hide mobile nav
+                if (desktopNav) {
+                    desktopNav.classList.remove('hidden');
+                }
+                if (mobileBottomNav) {
+                    mobileBottomNav.classList.add('hidden');
+                }
+                
+                // Also hide mobile menu overlay if it's open
+                const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+                if (mobileMenuOverlay && !mobileMenuOverlay.classList.contains('hidden')) {
+                    hideMobileMenu();
+                }
+            }
+        }
+    }
+    
+    // Add window resize listener
+    window.addEventListener('resize', adjustNavigationForScreenSize);
+    
+    // Run initial check
+    adjustNavigationForScreenSize();
 }

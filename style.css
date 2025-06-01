@@ -775,3 +775,44 @@ input:checked + .toggle-slider:before {
         100% { left: 100%; }
     }
 }
+
+/* Enhanced responsive navigation */
+@media (max-width: 767px) {
+    /* Force hide desktop navigation on mobile */
+    #desktopNavbar {
+        display: none !important;
+    }
+    
+    /* Ensure mobile navigation is properly positioned */
+    #mobileBottomNav {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 768px) {
+    /* Force hide mobile navigation on desktop */
+    #mobileBottomNav {
+        display: none !important;
+    }
+    
+    /* Force hide mobile menu overlay on desktop */
+    #mobileMenuOverlay {
+        display: none !important;
+    }
+    
+    /* Ensure desktop navigation is visible */
+    #desktopNavbar {
+        display: block !important;
+    }
+    
+    /* Remove mobile bottom padding on desktop */
+    main {
+        padding-bottom: 0 !important;
+    }
+}
+
+/* Smooth navigation transitions */
+#desktopNavbar,
+#mobileBottomNav {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
