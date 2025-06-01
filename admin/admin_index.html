@@ -82,6 +82,90 @@
                         </div>
                     </div>
                 </div>
+            </div>            <!-- Patient Visit Reports Section -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow mb-6">
+                <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 space-y-4 lg:space-y-0">
+                    <h2 class="text-lg font-semibold text-gray-800">Rekap Kunjungan Pasien</h2>
+                    <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                        <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                            <select id="reportType" class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full sm:w-auto">
+                                <option value="daily">Harian</option>
+                                <option value="weekly">Mingguan</option>
+                                <option value="monthly">Bulanan</option>
+                            </select>
+                            <input type="date" id="reportDate" class="border border-gray-300 rounded-md px-3 py-2 text-sm w-full sm:w-auto">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                            <button onclick="generateVisitReport()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
+                                Generate Laporan
+                            </button>
+                            <button onclick="exportVisitReport()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
+                                Export Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                  <!-- Report Summary Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                    <div class="bg-blue-50 p-3 md:p-4 rounded-lg border border-blue-200">
+                        <div class="text-blue-600 text-xs md:text-sm font-medium">Total Kunjungan</div>
+                        <div class="text-xl md:text-2xl font-bold text-blue-800" id="totalVisits">0</div>
+                    </div>
+                    <div class="bg-green-50 p-3 md:p-4 rounded-lg border border-green-200">
+                        <div class="text-green-600 text-xs md:text-sm font-medium">Pasien Unik</div>
+                        <div class="text-xl md:text-2xl font-bold text-green-800" id="uniquePatients">0</div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 md:p-4 rounded-lg border border-yellow-200">
+                        <div class="text-yellow-600 text-xs md:text-sm font-medium">Rata-rata per Hari</div>
+                        <div class="text-xl md:text-2xl font-bold text-yellow-800" id="avgVisitsPerDay">0</div>
+                    </div>
+                    <div class="bg-purple-50 p-3 md:p-4 rounded-lg border border-purple-200">
+                        <div class="text-purple-600 text-xs md:text-sm font-medium">Poliklinik Tersibuk</div>
+                        <div class="text-sm md:text-lg font-bold text-purple-800" id="busiestPolyclinic">-</div>
+                    </div>
+                </div>                <!-- Report Content -->
+                <div id="reportContent" class="space-y-4 md:space-y-6">
+                    <!-- By Polyclinic Report -->
+                    <div class="bg-gray-50 p-3 md:p-4 rounded-lg">
+                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">Kunjungan per Poliklinik</h3>
+                        <div id="polyclinicReport" class="space-y-2">
+                            <!-- Polyclinic data will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- By Doctor Report -->
+                    <div class="bg-gray-50 p-3 md:p-4 rounded-lg">
+                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">Kunjungan per Dokter</h3>
+                        <div id="doctorReport" class="space-y-2">
+                            <!-- Doctor data will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Detailed Visit List -->
+                    <div class="bg-gray-50 p-3 md:p-4 rounded-lg">
+                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">Detail Kunjungan</h3>
+                        <div class="overflow-x-auto -mx-3 md:-mx-4">
+                            <div class="min-w-full inline-block align-middle">
+                                <table class="min-w-full bg-white rounded-lg">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Tanggal</th>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Waktu</th>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Pasien</th>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Dokter</th>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Poliklinik</th>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Status</th>
+                                            <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">No. Antrian</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="visitTableBody" class="divide-y divide-gray-200">
+                                        <!-- Visit data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
