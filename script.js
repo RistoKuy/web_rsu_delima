@@ -226,18 +226,35 @@ function handleLogin(event) {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
-    // Find user in mock data
-    const user = mockData.users.find(u => u.email === email && u.password === password);
-    
-    if (user) {
+    // Prototype pass-through: Accept any credentials
+    if (email && password) {
+        // Check if user exists in mock data, if not create a simple user
+        let user = mockData.users.find(u => u.email === email);
+        
+        if (!user) {
+            // Create a new user for prototype purposes
+            user = {
+                id: mockData.users.length + 1,
+                name: email.split('@')[0] || 'User', // Use email prefix as name
+                email: email,
+                password: password,
+                dob: '1990-01-01',
+                address: '123 Sample Street, Jakarta',
+                phone: '+62812345678',
+                gender: 'male',
+                bpjs: ''
+            };
+            mockData.users.push(user);
+        }
+        
         appState.currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(user));
         showView('home');
-        showModal('Success', 'Welcome back! You have been successfully logged in.', [
+        showModal('Success', 'Welcome to RSU Delima! You have been successfully logged in.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
     } else {
-        showModal('Login Failed', 'Invalid email or password. Please try again.', [
+        showModal('Login Failed', 'Please enter both email and password.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
     }
@@ -250,6 +267,17 @@ function handleSignup(event) {
     const password = formData.get('password');
     const confirmPassword = formData.get('confirmPassword');
     
+    // Basic validation for prototype - just check required fields
+    const name = formData.get('name');
+    const email = formData.get('email');
+    
+    if (!name || !email || !password) {
+        showModal('Error', 'Please fill in all required fields (Name, Email, Password).', [
+            { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
+        ]);
+        return;
+    }
+    
     if (password !== confirmPassword) {
         showModal('Error', 'Passwords do not match. Please try again.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
@@ -257,25 +285,20 @@ function handleSignup(event) {
         return;
     }
 
-    // Check if email already exists
-    const existingUser = mockData.users.find(u => u.email === formData.get('email'));
-    if (existingUser) {
-        showModal('Error', 'An account with this email already exists.', [
-            { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
-        ]);
-        return;
-    }
+    // Prototype pass-through: Allow any email, even if it exists
+    // Remove existing user with same email first
+    mockData.users = mockData.users.filter(u => u.email !== email);
 
-    // Create new user
+    // Create new user with provided data or defaults
     const newUser = {
         id: mockData.users.length + 1,
-        name: formData.get('name'),
-        email: formData.get('email'),
+        name: name,
+        email: email,
         password: password,
-        dob: formData.get('dob'),
-        address: formData.get('address'),
-        phone: formData.get('phone'),
-        gender: formData.get('gender'),
+        dob: formData.get('dob') || '1990-01-01',
+        address: formData.get('address') || 'Sample Address, Jakarta',
+        phone: formData.get('phone') || '+62812345678',
+        gender: formData.get('gender') || 'male',
         bpjs: formData.get('bpjs') || ''
     };
 
