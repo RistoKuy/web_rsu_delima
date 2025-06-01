@@ -38,6 +38,25 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', day: 'Sabtu', time: '09:00 - 12:00', quota: 18, registered: 12 },
     ];
 
+    // Sample visit data for reports
+    let patientVisits = [
+        { id: 1, patientId: 1, patientName: 'Budi Santoso', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-05-30', visitTime: '09:15', status: 'Selesai', queueNumber: 'A001' },
+        { id: 2, patientId: 2, patientName: 'Ani Lestari', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-05-30', visitTime: '14:30', status: 'Selesai', queueNumber: 'B001' },
+        { id: 3, patientId: 3, patientName: 'Sari Dewi', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-05-30', visitTime: '10:45', status: 'Selesai', queueNumber: 'C001' },
+        { id: 4, patientId: 1, patientName: 'Budi Santoso', doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', visitDate: '2025-05-31', visitTime: '08:30', status: 'Sedang Dilayani', queueNumber: 'A002' },
+        { id: 5, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', visitDate: '2025-05-31', visitTime: '13:20', status: 'Menunggu', queueNumber: 'D001' },
+        { id: 6, patientId: 5, patientName: 'Maya Sari', doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', visitDate: '2025-06-01', visitTime: '09:45', status: 'Selesai', queueNumber: 'B002' },
+        { id: 7, patientId: 2, patientName: 'Ani Lestari', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-06-01', visitTime: '10:15', status: 'Sedang Dilayani', queueNumber: 'A003' },
+        { id: 8, patientId: 3, patientName: 'Sari Dewi', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-06-01', visitTime: '15:00', status: 'Menunggu', queueNumber: 'B003' },
+        { id: 9, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-05-29', visitTime: '11:30', status: 'Selesai', queueNumber: 'C002' },
+        { id: 10, patientId: 5, patientName: 'Maya Sari', doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', visitDate: '2025-05-29', visitTime: '09:00', status: 'Selesai', queueNumber: 'A004' },
+        { id: 11, patientId: 1, patientName: 'Budi Santoso', doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', visitDate: '2025-05-28', visitTime: '14:45', status: 'Selesai', queueNumber: 'D002' },
+        { id: 12, patientId: 2, patientName: 'Ani Lestari', doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', visitDate: '2025-05-28', visitTime: '10:30', status: 'Selesai', queueNumber: 'B004' },
+        { id: 13, patientId: 3, patientName: 'Sari Dewi', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-05-27', visitTime: '11:15', status: 'Selesai', queueNumber: 'A005' },
+        { id: 14, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-05-27', visitTime: '16:00', status: 'Selesai', queueNumber: 'B005' },
+        { id: 15, patientId: 5, patientName: 'Maya Sari', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-05-26', visitTime: '12:20', status: 'Selesai', queueNumber: 'C003' }
+    ];
+
     // --- Statistics Functions ---
     function updateStatistics() {
         // Update total patients
@@ -299,23 +318,601 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStatistics();
         window.closeAdminModal();
         alert('Jadwal dokter berhasil dihapus.');
+    };
+
+    // --- Visit Report Functions ---
+    window.generateVisitReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const reportDate = document.getElementById('reportDate').value;
+        
+        if (!reportDate) {
+            alert('Silakan pilih tanggal untuk generate laporan');
+            return;
+        }
+        
+        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
+        displayVisitReport(filteredVisits, reportType, reportDate);
+    };
+
+    function filterVisitsByDateRange(selectedDate, reportType) {
+        const selected = new Date(selectedDate);
+        
+        return patientVisits.filter(visit => {
+            const visitDate = new Date(visit.visitDate);
+            
+            switch (reportType) {
+                case 'daily':
+                    return visitDate.toDateString() === selected.toDateString();
+                    
+                case 'weekly':
+                    const weekStart = new Date(selected);
+                    weekStart.setDate(selected.getDate() - selected.getDay());
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekStart.getDate() + 6);
+                    return visitDate >= weekStart && visitDate <= weekEnd;
+                    
+                case 'monthly':
+                    return visitDate.getFullYear() === selected.getFullYear() && 
+                           visitDate.getMonth() === selected.getMonth();
+                           
+                default:
+                    return false;
+            }
+        });
+    }
+
+    function displayVisitReport(visits, reportType, reportDate) {
+        // Update summary statistics
+        updateVisitSummary(visits, reportType);
+        
+        // Generate polyclinic report
+        generatePolyclinicReport(visits);
+        
+        // Generate doctor report
+        generateDoctorReport(visits);
+        
+        // Generate detailed visit table
+        generateVisitTable(visits);
+    }
+
+    function updateVisitSummary(visits, reportType) {
+        document.getElementById('totalVisits').textContent = visits.length;
+        
+        const uniquePatients = new Set(visits.map(v => v.patientId)).size;
+        document.getElementById('uniquePatients').textContent = uniquePatients;
+        
+        let avgPerDay = 0;
+        if (reportType === 'daily') {
+            avgPerDay = visits.length;
+        } else if (reportType === 'weekly') {
+            avgPerDay = Math.round(visits.length / 7);
+        } else if (reportType === 'monthly') {
+            const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+            avgPerDay = Math.round(visits.length / daysInMonth);
+        }
+        document.getElementById('avgVisitsPerDay').textContent = avgPerDay;
+        
+        // Find busiest polyclinic
+        const polyclinicCounts = {};
+        visits.forEach(visit => {
+            polyclinicCounts[visit.polyclinic] = (polyclinicCounts[visit.polyclinic] || 0) + 1;
+        });
+        
+        const busiestPolyclinic = Object.keys(polyclinicCounts).reduce((a, b) => 
+            polyclinicCounts[a] > polyclinicCounts[b] ? a : b, '-'
+        );
+        document.getElementById('busiestPolyclinic').textContent = busiestPolyclinic;
+    }
+
+    function generatePolyclinicReport(visits) {
+        const polyclinicData = {};
+        
+        visits.forEach(visit => {
+            if (!polyclinicData[visit.polyclinic]) {
+                polyclinicData[visit.polyclinic] = {
+                    total: 0,
+                    completed: 0,
+                    inProgress: 0,
+                    waiting: 0
+                };
+            }
+            
+            polyclinicData[visit.polyclinic].total++;
+            
+            switch (visit.status) {
+                case 'Selesai':
+                    polyclinicData[visit.polyclinic].completed++;
+                    break;
+                case 'Sedang Dilayani':
+                    polyclinicData[visit.polyclinic].inProgress++;
+                    break;
+                case 'Menunggu':
+                    polyclinicData[visit.polyclinic].waiting++;
+                    break;
+            }
+        });
+        
+        const polyclinicReportElement = document.getElementById('polyclinicReport');
+        polyclinicReportElement.innerHTML = '';
+        
+        if (Object.keys(polyclinicData).length === 0) {
+            polyclinicReportElement.innerHTML = '<p class="text-gray-500 text-center">Tidak ada data kunjungan untuk periode ini</p>';
+            return;
+        }
+        
+        Object.entries(polyclinicData).forEach(([polyclinic, data]) => {
+            const reportItem = document.createElement('div');
+            reportItem.className = 'bg-white p-3 rounded border flex justify-between items-center';
+            reportItem.innerHTML = `
+                <div>
+                    <h4 class="font-semibold text-gray-800">${polyclinic}</h4>
+                    <p class="text-sm text-gray-600">Total: ${data.total} kunjungan</p>
+                </div>
+                <div class="text-right text-sm">
+                    <div class="text-green-600">Selesai: ${data.completed}</div>
+                    <div class="text-blue-600">Sedang Dilayani: ${data.inProgress}</div>
+                    <div class="text-yellow-600">Menunggu: ${data.waiting}</div>
+                </div>
+            `;
+            polyclinicReportElement.appendChild(reportItem);
+        });
+    }
+
+    function generateDoctorReport(visits) {
+        const doctorData = {};
+        
+        visits.forEach(visit => {
+            if (!doctorData[visit.doctorName]) {
+                doctorData[visit.doctorName] = {
+                    polyclinic: visit.polyclinic,
+                    total: 0,
+                    completed: 0,
+                    inProgress: 0,
+                    waiting: 0
+                };
+            }
+            
+            doctorData[visit.doctorName].total++;
+            
+            switch (visit.status) {
+                case 'Selesai':
+                    doctorData[visit.doctorName].completed++;
+                    break;
+                case 'Sedang Dilayani':
+                    doctorData[visit.doctorName].inProgress++;
+                    break;
+                case 'Menunggu':
+                    doctorData[visit.doctorName].waiting++;
+                    break;
+            }
+        });
+        
+        const doctorReportElement = document.getElementById('doctorReport');
+        doctorReportElement.innerHTML = '';
+        
+        if (Object.keys(doctorData).length === 0) {
+            doctorReportElement.innerHTML = '<p class="text-gray-500 text-center">Tidak ada data kunjungan untuk periode ini</p>';
+            return;
+        }
+        
+        Object.entries(doctorData).forEach(([doctorName, data]) => {
+            const reportItem = document.createElement('div');
+            reportItem.className = 'bg-white p-3 rounded border flex justify-between items-center';
+            reportItem.innerHTML = `
+                <div>
+                    <h4 class="font-semibold text-gray-800">${doctorName}</h4>
+                    <p class="text-sm text-gray-600">${data.polyclinic} - Total: ${data.total} pasien</p>
+                </div>
+                <div class="text-right text-sm">
+                    <div class="text-green-600">Selesai: ${data.completed}</div>
+                    <div class="text-blue-600">Sedang Dilayani: ${data.inProgress}</div>
+                    <div class="text-yellow-600">Menunggu: ${data.waiting}</div>
+                </div>
+            `;
+            doctorReportElement.appendChild(reportItem);
+        });
+    }
+
+    function generateVisitTable(visits) {
+        const tableBody = document.getElementById('visitTableBody');
+        tableBody.innerHTML = '';
+        
+        if (visits.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="7" class="px-4 py-4 text-center text-gray-500">Tidak ada data kunjungan untuk periode ini</td>';
+            tableBody.appendChild(row);
+            return;
+        }
+        
+        // Sort visits by date and time
+        visits.sort((a, b) => {
+            const dateCompare = new Date(a.visitDate) - new Date(b.visitDate);
+            if (dateCompare !== 0) return dateCompare;
+            return a.visitTime.localeCompare(b.visitTime);
+        });
+        
+        visits.forEach(visit => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            
+            const statusClass = visit.status === 'Selesai' ? 'text-green-600 bg-green-100' :
+                               visit.status === 'Sedang Dilayani' ? 'text-blue-600 bg-blue-100' :
+                               'text-yellow-600 bg-yellow-100';
+            
+            row.innerHTML = `
+                <td class="px-4 py-2 text-sm">${new Date(visit.visitDate).toLocaleDateString('id-ID')}</td>
+                <td class="px-4 py-2 text-sm">${visit.visitTime}</td>
+                <td class="px-4 py-2 text-sm font-medium">${visit.patientName}</td>
+                <td class="px-4 py-2 text-sm">${visit.doctorName}</td>
+                <td class="px-4 py-2 text-sm">${visit.polyclinic}</td>
+                <td class="px-4 py-2 text-sm">
+                    <span class="px-2 py-1 rounded-full text-xs ${statusClass}">${visit.status}</span>
+                </td>
+                <td class="px-4 py-2 text-sm font-mono">${visit.queueNumber}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    window.exportVisitReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const reportDate = document.getElementById('reportDate').value;
+        
+        if (!reportDate) {
+            alert('Silakan pilih tanggal untuk export laporan');
+            return;
+        }
+        
+        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
+        
+        if (filteredVisits.length === 0) {
+            alert('Tidak ada data untuk di-export');
+            return;
+        }
+        
+        // Create CSV content
+        const headers = ['Tanggal', 'Waktu', 'Pasien', 'Dokter', 'Poliklinik', 'Status', 'Nomor Antrian'];
+        let csvContent = headers.join(',') + '\n';
+        
+        filteredVisits.forEach(visit => {
+            const row = [
+                new Date(visit.visitDate).toLocaleDateString('id-ID'),
+                visit.visitTime,
+                `"${visit.patientName}"`,
+                `"${visit.doctorName}"`,
+                visit.polyclinic,
+                visit.status,
+                visit.queueNumber
+            ];
+            csvContent += row.join(',') + '\n';
+        });
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `laporan_kunjungan_${reportType}_${reportDate}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show success message
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        notification.textContent = 'Laporan berhasil di-export!';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
     };    // --- Initial Render ---
     renderPatientList();
     renderDoctorScheduleList();
     updateStatistics();
+    
+    // Initialize report date to today and check if elements exist
+    const reportDateElement = document.getElementById('reportDate');
+    if (reportDateElement) {
+        const today = new Date().toISOString().split('T')[0];
+        reportDateElement.value = today;
+        
+        // Generate initial report for today
+        setTimeout(() => {
+            generateVisitReport();
+        }, 500);
+    }
     
     // Add welcome message
     console.log('Admin Console initialized successfully');
     
     // Optional: Show welcome notification
     setTimeout(() => {
-        const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-        console.log(`Welcome, ${userData.name || 'Admin'}!`);
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        notification.textContent = 'Admin Console berhasil dimuat!';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
     }, 1000);
-});
 
-// Functions called from inline HTML event attributes need to be on the window scope.
-// This is already handled by declaring them as window.functionName inside the DOMContentLoaded listener,
-// or by not declaring them with const/let within a block if they are top-level in the script.
-// For clarity, explicitly assigning them to window if they are defined within a scope.
-// However, the current structure where functions like viewPatientDetails are defined as window.viewPatientDetails = ...
+    // --- Visit Report Functions ---
+    window.generateVisitReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const reportDate = document.getElementById('reportDate').value;
+        
+        if (!reportDate) {
+            alert('Silakan pilih tanggal untuk generate laporan');
+            return;
+        }
+        
+        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
+        displayVisitReport(filteredVisits, reportType, reportDate);
+    };
+
+    function filterVisitsByDateRange(selectedDate, reportType) {
+        const selected = new Date(selectedDate);
+        
+        return patientVisits.filter(visit => {
+            const visitDate = new Date(visit.visitDate);
+            
+            switch (reportType) {
+                case 'daily':
+                    return visitDate.toDateString() === selected.toDateString();
+                    
+                case 'weekly':
+                    const weekStart = new Date(selected);
+                    weekStart.setDate(selected.getDate() - selected.getDay());
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekStart.getDate() + 6);
+                    return visitDate >= weekStart && visitDate <= weekEnd;
+                    
+                case 'monthly':
+                    return visitDate.getFullYear() === selected.getFullYear() && 
+                           visitDate.getMonth() === selected.getMonth();
+                          
+                default:
+                    return false;
+            }
+        });
+    }
+
+    function displayVisitReport(visits, reportType, reportDate) {
+        // Update summary statistics
+        updateVisitSummary(visits, reportType);
+        
+        // Generate polyclinic report
+        generatePolyclinicReport(visits);
+        
+        // Generate doctor report
+        generateDoctorReport(visits);
+        
+        // Generate detailed visit table
+        generateVisitTable(visits);
+    }
+
+    function updateVisitSummary(visits, reportType) {
+        document.getElementById('totalVisits').textContent = visits.length;
+        
+        const uniquePatients = new Set(visits.map(v => v.patientId)).size;
+        document.getElementById('uniquePatients').textContent = uniquePatients;
+        
+        let avgPerDay = 0;
+        if (reportType === 'daily') {
+            avgPerDay = visits.length;
+        } else if (reportType === 'weekly') {
+            avgPerDay = Math.round(visits.length / 7);
+        } else if (reportType === 'monthly') {
+            const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+            avgPerDay = Math.round(visits.length / daysInMonth);
+        }
+        document.getElementById('avgVisitsPerDay').textContent = avgPerDay;
+        
+        // Find busiest polyclinic
+        const polyclinicCounts = {};
+        visits.forEach(visit => {
+            polyclinicCounts[visit.polyclinic] = (polyclinicCounts[visit.polyclinic] || 0) + 1;
+        });
+        
+        const busiestPolyclinic = Object.keys(polyclinicCounts).reduce((a, b) => 
+            polyclinicCounts[a] > polyclinicCounts[b] ? a : b, '-'
+        );
+        document.getElementById('busiestPolyclinic').textContent = busiestPolyclinic;
+    }
+
+    function generatePolyclinicReport(visits) {
+        const polyclinicData = {};
+        
+        visits.forEach(visit => {
+            if (!polyclinicData[visit.polyclinic]) {
+                polyclinicData[visit.polyclinic] = {
+                    total: 0,
+                    completed: 0,
+                    inProgress: 0,
+                    waiting: 0
+                };
+            }
+            
+            polyclinicData[visit.polyclinic].total++;
+            
+            switch (visit.status) {
+                case 'Selesai':
+                    polyclinicData[visit.polyclinic].completed++;
+                    break;
+                case 'Sedang Dilayani':
+                    polyclinicData[visit.polyclinic].inProgress++;
+                    break;
+                case 'Menunggu':
+                    polyclinicData[visit.polyclinic].waiting++;
+                    break;
+            }
+        });
+        
+        const polyclinicReportElement = document.getElementById('polyclinicReport');
+        polyclinicReportElement.innerHTML = '';
+        
+        if (Object.keys(polyclinicData).length === 0) {
+            polyclinicReportElement.innerHTML = '<p class="text-gray-500 text-center">Tidak ada data kunjungan untuk periode ini</p>';
+            return;
+        }
+        
+        Object.entries(polyclinicData).forEach(([polyclinic, data]) => {
+            const reportItem = document.createElement('div');
+            reportItem.className = 'bg-white p-3 rounded border flex justify-between items-center';
+            reportItem.innerHTML = `
+                <div>
+                    <h4 class="font-semibold text-gray-800">${polyclinic}</h4>
+                    <p class="text-sm text-gray-600">Total: ${data.total} kunjungan</p>
+                </div>
+                <div class="text-right text-sm">
+                    <div class="text-green-600">Selesai: ${data.completed}</div>
+                    <div class="text-blue-600">Sedang Dilayani: ${data.inProgress}</div>
+                    <div class="text-yellow-600">Menunggu: ${data.waiting}</div>
+                </div>
+            `;
+            polyclinicReportElement.appendChild(reportItem);
+        });
+    }
+
+    function generateDoctorReport(visits) {
+        const doctorData = {};
+        
+        visits.forEach(visit => {
+            if (!doctorData[visit.doctorName]) {
+                doctorData[visit.doctorName] = {
+                    polyclinic: visit.polyclinic,
+                    total: 0,
+                    completed: 0,
+                    inProgress: 0,
+                    waiting: 0
+                };
+            }
+            
+            doctorData[visit.doctorName].total++;
+            
+            switch (visit.status) {
+                case 'Selesai':
+                    doctorData[visit.doctorName].completed++;
+                    break;
+                case 'Sedang Dilayani':
+                    doctorData[visit.doctorName].inProgress++;
+                    break;
+                case 'Menunggu':
+                    doctorData[visit.doctorName].waiting++;
+                    break;
+            }
+        });
+        
+        const doctorReportElement = document.getElementById('doctorReport');
+        doctorReportElement.innerHTML = '';
+        
+        if (Object.keys(doctorData).length === 0) {
+            doctorReportElement.innerHTML = '<p class="text-gray-500 text-center">Tidak ada data kunjungan untuk periode ini</p>';
+            return;
+        }
+        
+        Object.entries(doctorData).forEach(([doctorName, data]) => {
+            const reportItem = document.createElement('div');
+            reportItem.className = 'bg-white p-3 rounded border flex justify-between items-center';
+            reportItem.innerHTML = `
+                <div>
+                    <h4 class="font-semibold text-gray-800">${doctorName}</h4>
+                    <p class="text-sm text-gray-600">${data.polyclinic} - Total: ${data.total} pasien</p>
+                </div>
+                <div class="text-right text-sm">
+                    <div class="text-green-600">Selesai: ${data.completed}</div>
+                    <div class="text-blue-600">Sedang Dilayani: ${data.inProgress}</div>
+                    <div class="text-yellow-600">Menunggu: ${data.waiting}</div>
+                </div>
+            `;
+            doctorReportElement.appendChild(reportItem);
+        });
+    }
+
+    function generateVisitTable(visits) {
+        const tableBody = document.getElementById('visitTableBody');
+        tableBody.innerHTML = '';
+        
+        if (visits.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="7" class="px-4 py-4 text-center text-gray-500">Tidak ada data kunjungan untuk periode ini</td>';
+            tableBody.appendChild(row);
+            return;
+        }
+        
+        // Sort visits by date and time
+        visits.sort((a, b) => {
+            const dateCompare = new Date(a.visitDate) - new Date(b.visitDate);
+            if (dateCompare !== 0) return dateCompare;
+            return a.visitTime.localeCompare(b.visitTime);
+        });
+        
+        visits.forEach(visit => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            
+            const statusClass = visit.status === 'Selesai' ? 'text-green-600 bg-green-100' :
+                               visit.status === 'Sedang Dilayani' ? 'text-blue-600 bg-blue-100' :
+                               'text-yellow-600 bg-yellow-100';
+            
+            row.innerHTML = `
+                <td class="px-4 py-2 text-sm">${new Date(visit.visitDate).toLocaleDateString('id-ID')}</td>
+                <td class="px-4 py-2 text-sm">${visit.visitTime}</td>
+                <td class="px-4 py-2 text-sm font-medium">${visit.patientName}</td>
+                <td class="px-4 py-2 text-sm">${visit.doctorName}</td>
+                <td class="px-4 py-2 text-sm">${visit.polyclinic}</td>
+                <td class="px-4 py-2 text-sm">
+                    <span class="px-2 py-1 rounded-full text-xs ${statusClass}">${visit.status}</span>
+                </td>
+                <td class="px-4 py-2 text-sm font-mono">${visit.queueNumber}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    window.exportVisitReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const reportDate = document.getElementById('reportDate').value;
+        
+        if (!reportDate) {
+            alert('Silakan pilih tanggal untuk export laporan');
+            return;
+        }
+        
+        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
+        
+        if (filteredVisits.length === 0) {
+            alert('Tidak ada data untuk di-export');
+            return;
+        }
+        
+        // Create CSV content
+        const headers = ['Tanggal', 'Waktu', 'Pasien', 'Dokter', 'Poliklinik', 'Status', 'Nomor Antrian'];
+        let csvContent = headers.join(',') + '\n';
+        
+        filteredVisits.forEach(visit => {
+            const row = [
+                new Date(visit.visitDate).toLocaleDateString('id-ID'),
+                visit.visitTime,
+                `"${visit.patientName}"`,
+                `"${visit.doctorName}"`,
+                visit.polyclinic,
+                visit.status,
+                visit.queueNumber
+            ];
+            csvContent += row.join(',') + '\n';
+        });
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `laporan_kunjungan_${reportType}_${reportDate}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+          // Show success message
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        notification.textContent = 'Laporan berhasil di-export!';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    };
+});
