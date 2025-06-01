@@ -216,16 +216,13 @@ function showNavigation() {
 }
 
 function hideNavigation() {
-    const elements = ['desktopNavbar', 'mobileBottomNav', 'mobileMenuOverlay'];
+    const elements = ['desktopNavbar', 'mobileBottomNav'];
     elements.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
             element.classList.add('hidden');
         }
     });
-    
-    // Restore body scroll if mobile menu was open
-    document.body.style.overflow = '';
 }
 
 function updateNavigation() {
@@ -282,8 +279,7 @@ function setActiveState(index) {
         desktopLinks[index].classList.remove('text-gray-700');
         desktopLinks[index].classList.add('text-primary-600');
     }
-    
-    // Set active state for mobile navigation (excluding menu button)
+      // Set active state for mobile navigation
     const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
     if (mobileItems[index]) {
         mobileItems[index].classList.remove('text-gray-500');
@@ -291,44 +287,11 @@ function setActiveState(index) {
     }
 }
 
-// Enhanced Mobile Menu Functions
-function showMobileMenu() {
-    const overlay = document.getElementById('mobileMenuOverlay');
-    if (overlay) {
-        overlay.classList.remove('hidden');
-        // Add smooth animation
-        requestAnimationFrame(() => {
-            overlay.style.opacity = '1';
-        });
-        
-        // Prevent body scroll when menu is open
-        document.body.style.overflow = 'hidden';
-    }
-}
+// Enhanced Mobile Menu Functions - REMOVED
+// Mobile menu functions removed as menu button was removed from navigation
 
-function hideMobileMenu() {
-    const overlay = document.getElementById('mobileMenuOverlay');
-    if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.classList.add('hidden');
-            // Restore body scroll
-            document.body.style.overflow = '';
-        }, 300);
-    }
-}
-
-// Close mobile menu when clicking outside
-document.addEventListener('click', function(event) {
-    const overlay = document.getElementById('mobileMenuOverlay');
-    const menuButton = event.target.closest('[onclick*="showMobileMenu"]');
-    
-    if (overlay && !overlay.classList.contains('hidden') && 
-        !event.target.closest('#mobileMenuOverlay > div') && 
-        !menuButton) {
-        hideMobileMenu();
-    }
-});
+// Close mobile menu when clicking outside - REMOVED
+// Event listener removed as mobile menu overlay no longer exists
 
 // Authentication Functions
 function handleLogin(event) {
@@ -986,20 +949,13 @@ function handleResponsiveNavigation() {
                 }
                 if (mobileBottomNav) {
                     mobileBottomNav.classList.remove('hidden');
-                }
-            } else {
+                }            } else {
                 // Desktop view: show desktop nav, hide mobile nav
                 if (desktopNav) {
                     desktopNav.classList.remove('hidden');
                 }
                 if (mobileBottomNav) {
                     mobileBottomNav.classList.add('hidden');
-                }
-                
-                // Also hide mobile menu overlay if it's open
-                const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-                if (mobileMenuOverlay && !mobileMenuOverlay.classList.contains('hidden')) {
-                    hideMobileMenu();
                 }
             }
         }

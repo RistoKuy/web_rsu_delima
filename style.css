@@ -453,6 +453,7 @@ input:checked + .toggle-slider:before {
     justify-content: center;
     color: #6b7280;
     touch-action: manipulation;
+    overflow: visible; /* Allow for visual effects */
 }
 
 .mobile-nav-item:active {
@@ -473,6 +474,31 @@ input:checked + .toggle-slider:before {
     transform: scale(1.1);
 }
 
+/* Enhanced active state indicator */
+.mobile-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 0 0 2px 2px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateX(-50%) translateY(-8px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
 /* Mobile Bottom Navigation - Enhanced Design */
 #mobileBottomNav {
     background: rgba(255, 255, 255, 0.98);
@@ -486,6 +512,9 @@ input:checked + .toggle-slider:before {
     left: 0;
     right: 0;
     z-index: 50;
+    min-height: 60px;
+    max-height: 80px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
 #mobileBottomNav .flex {
@@ -493,6 +522,7 @@ input:checked + .toggle-slider:before {
     align-items: center;
     justify-content: space-around;
     padding: 0.5rem 0.25rem;
+    min-height: 100%;
 }
 
 /* Mobile Navigation Items - Enhanced */
@@ -510,6 +540,10 @@ input:checked + .toggle-slider:before {
     padding: 0.25rem 0.5rem;
     flex: 1;
     max-width: 80px;
+    max-width: none;
+    min-width: 0;
+    overflow: hidden;
+    text-align: center;
 }
 
 .mobile-nav-item:active {
@@ -538,46 +572,75 @@ input:checked + .toggle-slider:before {
 }
 
 .mobile-nav-item span {
-    font-size: 0.6rem;
-    font-weight: 500;
-    text-align: center;
+    font-size: 0.7rem;
     line-height: 1;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
 }
 
-/* Enhanced Mobile Menu Overlay */
-#mobileMenuOverlay {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    background: rgba(0, 0, 0, 0.4);
-    opacity: 0;
-    transition: all 0.3s ease-in-out;
+/* Better spacing for very small screens */
+@media (max-width: 360px) {
+    .mobile-nav-item {
+        padding-left: 0.125rem;
+        padding-right: 0.125rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.55rem;
+        line-height: 0.8;
+    }
 }
 
-#mobileMenuOverlay:not(.hidden) {
-    opacity: 1;
+/* Responsive adjustments for very small screens */
+@media (max-width: 320px) {
+    .mobile-nav-item span {
+        font-size: 0.6rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    
+    .mobile-nav-item svg {
+        width: 1rem;
+        height: 1rem;
+    }
 }
 
-#mobileMenuOverlay > div {
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+/* Responsive adjustments for small screens */
+@media (max-width: 375px) {
+    .mobile-nav-item {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.65rem;
+    }
 }
 
-#mobileMenuOverlay:not(.hidden) > div {
-    transform: translateX(0);
+/* Responsive adjustments for larger mobile screens */
+@media (min-width: 376px) and (max-width: 767px) {
+    .mobile-nav-item {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.75rem;
+    }
 }
 
-/* Mobile Menu Content Styling */
-#mobileMenuOverlay .p-4 {
-    padding: 1.5rem;
-}
-
-#mobileMenuOverlay button {
-    transition: all 0.2s ease-in-out;
-}
-
-#mobileMenuOverlay button:hover {
-    transform: translateX(4px);
+/* Optimize for safe area on devices with notches/rounded corners */
+@media (max-width: 767px) {
+    #mobileBottomNav {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
 }
 
 /* Mobile responsive improvements */
@@ -795,11 +858,6 @@ input:checked + .toggle-slider:before {
         display: none !important;
     }
     
-    /* Force hide mobile menu overlay on desktop */
-    #mobileMenuOverlay {
-        display: none !important;
-    }
-    
     /* Ensure desktop navigation is visible */
     #desktopNavbar {
         display: block !important;
@@ -815,4 +873,50 @@ input:checked + .toggle-slider:before {
 #desktopNavbar,
 #mobileBottomNav {
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Enhanced responsive navigation for various screen orientations */
+@media (max-width: 767px) and (orientation: landscape) {
+    #mobileBottomNav {
+        padding: 0.25rem 0;
+        min-height: 50px;
+    }
+    
+    .mobile-nav-item {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.6rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+/* Very large mobile screens (tablets in portrait) */
+@media (min-width: 480px) and (max-width: 767px) {
+    .mobile-nav-item {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.8rem;
+    }
+    
+    #mobileBottomNav {
+        min-height: 70px;
+    }
+}
+
+/* Touch target optimization for better accessibility */
+@media (max-width: 767px) {
+    .mobile-nav-item {
+        min-height: 48px; /* WCAG recommended minimum touch target */
+        min-width: 48px;
+    }
 }
