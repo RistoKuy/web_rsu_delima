@@ -230,13 +230,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize user type toggle
         setUserType('patient'); // Set default user type
-        
-        // Check if user is logged in (from localStorage)
+          // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem('currentUser');
         if (savedUser) {
             appState.currentUser = JSON.parse(savedUser);
             showView('home');
-            showNavigation();
         } else {
             showView('login');
         }
