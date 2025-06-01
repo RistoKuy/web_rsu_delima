@@ -152,14 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (savedUser) {
             appState.currentUser = JSON.parse(savedUser);
             showView('home');
-            showNavbar();
+            showNavigation();
         } else {
             showView('login');
         }
     }, 2000);
-
-    // Mobile menu toggle
-    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
 });
 
 // Navigation Functions
@@ -173,7 +170,7 @@ function showView(viewName) {
     document.getElementById(viewName + 'View').classList.remove('hidden');
     appState.currentView = viewName;
 
-    // Update navbar visibility and active states
+    // Update navigation visibility and active states
     updateNavigation();
 
     // Load view-specific content
@@ -193,31 +190,89 @@ function showView(viewName) {
     }
 }
 
-function showNavbar() {
-    document.getElementById('navbar').classList.remove('hidden');
+function showNavigation() {
+    // Show appropriate navigation based on screen size
+    const desktopNav = document.getElementById('desktopNavbar');
+    const mobileTopBar = document.getElementById('mobileTopBar');
+    const mobileBottomNav = document.getElementById('mobileBottomNav');
+    
+    // Show desktop navigation
+    desktopNav.classList.remove('hidden');
+    desktopNav.classList.add('md:block');
+    
+    // Show mobile navigation
+    mobileTopBar.classList.remove('hidden');
+    mobileTopBar.classList.add('md:hidden');
+    mobileBottomNav.classList.remove('hidden');
+    mobileBottomNav.classList.add('md:hidden');
+    
+    // Update active navigation items
+    updateActiveNavItems();
 }
 
-function hideNavbar() {
-    document.getElementById('navbar').classList.add('hidden');
+function hideNavigation() {
+    document.getElementById('desktopNavbar').classList.add('hidden');
+    document.getElementById('mobileTopBar').classList.add('hidden');
+    document.getElementById('mobileBottomNav').classList.add('hidden');
 }
 
 function updateNavigation() {
     if (['login', 'signup'].includes(appState.currentView)) {
-        hideNavbar();
+        hideNavigation();
     } else {
-        showNavbar();
+        showNavigation();
     }
+}
 
-    // Update active nav link
-    document.querySelectorAll('.nav-link').forEach(link => {
+function updateActiveNavItems() {
+    const currentView = appState.currentView;
+    
+    // Update desktop navigation
+    document.querySelectorAll('#desktopNavbar .nav-link').forEach(link => {
         link.classList.remove('text-primary-600', 'border-primary-600');
         link.classList.add('text-gray-700');
     });
+    
+    // Update mobile bottom navigation
+    document.querySelectorAll('#mobileBottomNav .mobile-nav-item').forEach(item => {
+        item.classList.remove('text-primary-600');
+        item.classList.add('text-gray-500');
+    });
+    
+    // Set active states based on current view
+    const navItemsMapping = {
+        'home': 0,
+        'findDoctor': 1,
+        'myAppointments': 2,
+        'profile': 3
+    };
+    
+    if (navItemsMapping.hasOwnProperty(currentView)) {
+        const activeIndex = navItemsMapping[currentView];
+        
+        // Update desktop nav
+        const desktopLinks = document.querySelectorAll('#desktopNavbar .nav-link');
+        if (desktopLinks[activeIndex]) {
+            desktopLinks[activeIndex].classList.remove('text-gray-700');
+            desktopLinks[activeIndex].classList.add('text-primary-600');
+        }
+        
+        // Update mobile nav
+        const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
+        if (mobileItems[activeIndex]) {
+            mobileItems[activeIndex].classList.remove('text-gray-500');
+            mobileItems[activeIndex].classList.add('text-primary-600');
+        }
+    }
 }
 
-function toggleMobileMenu() {
-    const mobileMenu = document.getElementById('mobileMenu');
-    mobileMenu.classList.toggle('hidden');
+// Mobile menu functions
+function showMobileMenu() {
+    document.getElementById('mobileMenuOverlay').classList.remove('hidden');
+}
+
+function hideMobileMenu() {
+    document.getElementById('mobileMenuOverlay').classList.add('hidden');
 }
 
 // Authentication Functions
@@ -246,8 +301,7 @@ function handleLogin(event) {
             };
             mockData.users.push(user);
         }
-        
-        appState.currentUser = user;
+          appState.currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(user));
         showView('home');
         showModal('Success', 'Welcome to RSU Delima! You have been successfully logged in.', [
