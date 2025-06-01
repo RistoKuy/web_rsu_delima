@@ -929,26 +929,26 @@ input:checked + .toggle-slider:before {
 
 /* Enhanced responsive navigation */
 @media (max-width: 767px) {
-    /* Force hide desktop navigation on mobile */
-    #desktopNavbar {
-        display: none !important;
+    /* Force hide desktop navigation on mobile when not hidden by JS */
+    #desktopNavbar:not(.hidden) {
+        display: none;
     }
     
-    /* Ensure mobile navigation is properly positioned */
-    #mobileBottomNav {
-        display: flex !important;
+    /* Ensure mobile navigation is properly positioned when not hidden by JS */
+    #mobileBottomNav:not(.hidden) {
+        display: flex;
     }
 }
 
 @media (min-width: 768px) {
-    /* Force hide mobile navigation on desktop */
-    #mobileBottomNav {
-        display: none !important;
+    /* Force hide mobile navigation on desktop when not hidden by JS */
+    #mobileBottomNav:not(.hidden) {
+        display: none;
     }
     
-    /* Ensure desktop navigation is visible */
-    #desktopNavbar {
-        display: block !important;
+    /* Ensure desktop navigation is visible when not hidden by JS */
+    #desktopNavbar:not(.hidden) {
+        display: block;
     }
     
     /* Remove mobile bottom padding on desktop */
@@ -1052,4 +1052,251 @@ input:checked + .toggle-slider:before {
         color: #1d4ed8;
         font-weight: 600;
     }
+}
+
+/* User Type Toggle Styles */
+.user-type-toggle {
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    border: 1px solid #e5e7eb;
+}
+
+.user-type-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.user-type-toggle:hover::before {
+    left: 100%;
+}
+
+.user-type-toggle.active {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3) !important;
+    transform: translateY(-1px);
+    border-color: #3b82f6 !important;
+}
+
+.user-type-toggle:not(.active):hover {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    transform: translateY(-1px);
+    border-color: #d1d5db !important;
+}
+
+/* Enhanced login form for different user types */
+.login-form-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.login-form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(34, 197, 94, 0.05) 100%);
+    pointer-events: none;
+}
+
+/* Navigation hidden by JavaScript should stay hidden regardless of responsive rules */
+#desktopNavbar.hidden,
+#mobileBottomNav.hidden {
+    display: none !important;
+}
+
+/* Enhanced responsive navigation */
+@media (max-width: 767px) {
+    /* Force hide desktop navigation on mobile when not hidden by JS */
+    #desktopNavbar:not(.hidden) {
+        display: none;
+    }
+    
+    /* Ensure mobile navigation is properly positioned when not hidden by JS */
+    #mobileBottomNav:not(.hidden) {
+        display: flex;
+    }
+}
+
+@media (min-width: 768px) {
+    /* Force hide mobile navigation on desktop when not hidden by JS */
+    #mobileBottomNav:not(.hidden) {
+        display: none;
+    }
+    
+    /* Ensure desktop navigation is visible when not hidden by JS */
+    #desktopNavbar:not(.hidden) {
+        display: block;
+    }
+    
+    /* Remove mobile bottom padding on desktop */
+    main {
+        padding-bottom: 0 !important;
+    }
+}
+
+/* Smooth navigation transitions */
+#desktopNavbar,
+#mobileBottomNav {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Enhanced responsive navigation for various screen orientations */
+@media (max-width: 767px) and (orientation: landscape) {
+    #mobileBottomNav {
+        padding: 0.25rem 0;
+        min-height: 50px;
+    }
+    
+    .mobile-nav-item {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.6rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+/* Very large mobile screens (tablets in portrait) */
+@media (min-width: 480px) and (max-width: 767px) {
+    .mobile-nav-item {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.8rem;
+    }
+    
+    #mobileBottomNav {
+        min-height: 70px;
+    }
+}
+
+/* Touch target optimization for better accessibility */
+@media (max-width: 767px) {
+    .mobile-nav-item {
+        min-height: 48px; /* WCAG recommended minimum touch target */
+        min-width: 48px;
+    }
+}
+
+/* Enhanced touch feedback for mobile navigation */
+@media (max-width: 767px) {
+    .mobile-nav-item {
+        /* Add subtle border for better definition */
+        border: 1px solid transparent;
+        /* Improved transition for better user feedback */
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                    transform 0.1s ease-out;
+    }
+    
+    /* Enhanced hover state (for devices that support hover) */
+    .mobile-nav-item:hover:not(.active) {
+        background: rgba(107, 114, 128, 0.05);
+        border-color: rgba(107, 114, 128, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    /* Better active press feedback */
+    .mobile-nav-item:active {
+        transform: scale(0.96) translateY(0);
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Enhanced active state with better visual hierarchy */
+    .mobile-nav-item.active {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #1d4ed8;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Enhanced icon animation for active state */
+    .mobile-nav-item.active svg {
+        transform: scale(1.15);
+        filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.3));
+    }
+    
+    /* Better text contrast for active state */
+    .mobile-nav-item.active span {
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+}
+
+/* User Type Toggle Styles */
+.user-type-toggle {
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    border: 1px solid #e5e7eb;
+}
+
+.user-type-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.user-type-toggle:hover::before {
+    left: 100%;
+}
+
+.user-type-toggle.active {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3) !important;
+    transform: translateY(-1px);
+    border-color: #3b82f6 !important;
+}
+
+.user-type-toggle:not(.active):hover {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    transform: translateY(-1px);
+    border-color: #d1d5db !important;
+}
+
+/* Enhanced login form for different user types */
+.login-form-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.login-form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(34, 197, 94, 0.05) 100%);
+    pointer-events: none;
 }

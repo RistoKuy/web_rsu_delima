@@ -1,0 +1,304 @@
+/* Admin Console Specific Styles */
+/* Separate from main application to avoid conflicts */
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* Admin Header Styles */
+.bg-primary-600 {
+    background-color: #2563eb;
+}
+
+.bg-primary-600:hover {
+    background-color: #1d4ed8;
+}
+
+/* Statistics Cards Enhancement */
+.stats-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card.patients {
+    border-left-color: #3b82f6;
+}
+
+.stats-card.schedules {
+    border-left-color: #10b981;
+}
+
+.stats-card.slots {
+    border-left-color: #f59e0b;
+}
+
+/* Admin Header Enhancement */
+header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Enhancements */
+#adminModal .max-w-lg {
+    max-width: 50rem;
+}
+
+#adminModal {
+    backdrop-filter: blur(4px);
+}
+
+#adminModal .relative {
+    animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Basic button styling (relying on Tailwind for specifics in HTML) */
+.action-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    outline: none;
+    margin: 0 0.125rem;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+.action-button:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Specific button color overrides for admin console */
+.view-button {
+    background-color: #3b82f6 !important;
+    color: white !important;
+}
+
+.view-button:hover {
+    background-color: #2563eb !important;
+}
+
+.edit-button {
+    background-color: #f59e0b !important;
+    color: white !important;
+}
+
+.edit-button:hover {
+    background-color: #d97706 !important;
+}
+
+.delete-button {
+    background-color: #ef4444 !important;
+    color: white !important;
+}
+
+.delete-button:hover {
+    background-color: #dc2626 !important;
+}
+
+/* Styling for patient/doctor cards in lists */
+.data-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.data-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
+}
+
+.data-card-info {
+    flex: 1;
+}
+
+.data-card-info .name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.data-card-info p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0.125rem 0;
+}
+
+.data-card-actions {
+    display: flex;
+    gap: 0.375rem;
+    flex-shrink: 0;
+}
+
+/* Form styling within modal */
+#adminModalBody form {
+    margin-top: 1rem;
+}
+
+#adminModalBody form label {
+    display: block;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 600; /* font-medium */
+    color: #374151; /* text-gray-700 */
+    margin-bottom: 0.375rem; /* mb-1 */
+}
+
+#adminModalBody form input,
+#adminModalBody form textarea,
+#adminModalBody form select {
+    display: block;
+    width: 100%;
+    padding: 0.625rem 0.875rem; /* px-3 py-2 */
+    border: 2px solid #d1d5db; /* border border-gray-300 */
+    border-radius: 0.5rem; /* rounded-md */
+    background-color: #ffffff;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    margin-bottom: 1rem; /* Add some space between form fields */
+}
+
+#adminModalBody form input:focus,
+#adminModalBody form textarea:focus,
+#adminModalBody form select:focus {
+    outline: none;
+    border-color: #3b82f6; /* focus:border-primary-500 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); /* focus:ring-primary-500 (approximated) */
+}
+
+#adminModalBody form input:invalid,
+#adminModalBody form textarea:invalid,
+#adminModalBody form select:invalid {
+    border-color: #ef4444;
+}
+
+#adminModalBody form textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Footer button styling (relying on Tailwind for specifics in HTML) */
+#adminModalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+#adminModalFooter button {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.save-button {
+    background-color: #10b981 !important;
+    color: white !important;
+}
+
+.save-button:hover {
+    background-color: #059669 !important;
+    transform: translateY(-1px);
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-available {
+    background-color: #10b981;
+}
+
+.status-full {
+    background-color: #ef4444;
+}
+
+.status-warning {
+    background-color: #f59e0b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .data-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .data-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    #adminModal .relative {
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+    
+    .action-button {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .action-button,
+    #adminModalFooter {
+        display: none;
+    }
+    
+    .data-card {
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+}

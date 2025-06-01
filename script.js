@@ -1,3 +1,45 @@
+// Global Application State
+let appState = {
+    currentUser: null,
+    currentView: 'login',
+    selectedUserType: 'patient' // Default to patient
+};
+
+// User Type Management
+function setUserType(type) {
+    appState.selectedUserType = type;
+    
+    // Update toggle buttons
+    document.querySelectorAll('.user-type-toggle').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    const activeToggle = document.getElementById(type + 'Toggle');
+    if (activeToggle) {
+        activeToggle.classList.add('active');
+    }
+    
+    // Update login form placeholder text based on user type
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    
+    if (emailInput && passwordInput) {
+        switch(type) {
+            case 'admin':
+                emailInput.placeholder = 'Masukkan email admin';
+                passwordInput.placeholder = 'Masukkan kata sandi admin';
+                break;
+            case 'doctor':
+                emailInput.placeholder = 'Masukkan email dokter';
+                passwordInput.placeholder = 'Masukkan kata sandi dokter';
+                break;
+            default: // patient
+                emailInput.placeholder = 'Masukkan email Anda';
+                passwordInput.placeholder = 'Masukkan kata sandi Anda';
+        }
+    }
+}
+
 // Mock Data
 let mockData = {
     users: [
@@ -123,18 +165,6 @@ let mockData = {
     appointments: []
 };
 
-// Application State
-let appState = {
-    currentUser: null,
-    currentView: 'login',
-    selectedPolyclinic: null,
-    selectedDoctor: null,
-    selectedDate: null,
-    selectedTime: null,
-    currentAppointmentTab: 'upcoming',
-    appointmentToRescheduleId: null // Added for rescheduling
-};
-
 // Average consultation time in minutes
 const AVG_CONSULTATION_MINUTES = 15;
 
@@ -198,12 +228,13 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         document.getElementById('loadingView').style.display = 'none';
         
-        // Check if user is logged in (from localStorage)
+        // Initialize user type toggle
+        setUserType('patient'); // Set default user type
+          // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem('currentUser');
         if (savedUser) {
             appState.currentUser = JSON.parse(savedUser);
             showView('home');
-            showNavigation();
         } else {
             showView('login');
         }
@@ -353,28 +384,54 @@ function handleLogin(event) {
 
     // Prototype pass-through: Accept any credentials
     if (email && password) {
-        // Check if user exists in mock data, if not create a simple user
-        let user = mockData.users.find(u => u.email === email);
-        
-        if (!user) {
-            // Create a new user for prototype purposes
-            user = {
-                id: mockData.users.length + 1,                name: email.split('@')[0] || 'User', // Use email prefix as name
-                email: email,
-                password: password,
-                dob: '1990-01-01',
-                address: '123 Jalan Contoh, Jakarta',
-                phone: '+62812345678',
-                gender: 'male',
-                bpjs: ''
-            };
-            mockData.users.push(user);
+        // Handle different user types
+        switch(appState.selectedUserType) {
+            case 'admin':
+                // Store admin session
+                sessionStorage.setItem('userRole', 'admin');
+                sessionStorage.setItem('userData', JSON.stringify({
+                    email: email,
+                    name: 'Admin',
+                    role: 'admin'
+                }));
+                // Redirect to admin console
+                window.location.href = 'admin/admin_index.html';
+                return;
+                
+            case 'doctor':
+                // For now, redirect to patient view (can be extended later)
+                showModal('Info', 'Panel dokter sedang dalam pengembangan. Silakan gunakan akses pasien untuk sementara.', [
+                    { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
+                ]);
+                return;
+                
+            default: // patient
+                // Check if user exists in mock data, if not create a simple user
+                let user = mockData.users.find(u => u.email === email);
+                
+                if (!user) {
+                    // Create a new user for prototype purposes
+                    user = {
+                        id: mockData.users.length + 1,
+                        name: email.split('@')[0] || 'User', // Use email prefix as name
+                        email: email,
+                        password: password,
+                        dob: '1990-01-01',
+                        address: '123 Jalan Contoh, Jakarta',
+                        phone: '+62812345678',
+                        gender: 'male',
+                        bpjs: ''
+                    };
+                    mockData.users.push(user);
+                }
+                
+                appState.currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showView('home');
+                showModal('Sukses', 'Selamat datang di RSU Delima! Anda berhasil masuk.', [
+                    { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
+                ]);
         }
-          appState.currentUser = user;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        showView('home');        showModal('Sukses', 'Selamat datang di RSU Delima! Anda berhasil masuk.', [
-            { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
-        ]);
     } else {
         showModal('Login Gagal', 'Harap masukkan email dan kata sandi.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
