@@ -15,6 +15,35 @@ body {
     background-color: #1d4ed8;
 }
 
+/* Statistics Cards Enhancement */
+.stats-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card.patients {
+    border-left-color: #3b82f6;
+}
+
+.stats-card.schedules {
+    border-left-color: #10b981;
+}
+
+.stats-card.slots {
+    border-left-color: #f59e0b;
+}
+
+/* Admin Header Enhancement */
+header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
 /* Modal Enhancements */
 #adminModal .max-w-lg {
     max-width: 50rem;
