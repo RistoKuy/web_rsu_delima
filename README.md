@@ -20,69 +20,67 @@ RSU Delima adalah sistem reservasi online yang memungkinkan pasien untuk:
 - **Logout**: Keluar dari sistem dengan aman
 
 ### 🏥 Poliklinik Tersedia
-1. **Poli Umum (General Medicine)** 🩺
-   - Pelayanan kesehatan primer untuk kondisi medis umum
-   
-2. **Kardiologi (Cardiology)** ❤️
-   - Spesialis jantung dan sistem kardiovaskular
-   
-3. **Pediatri (Pediatrics)** 👶
-   - Perawatan medis untuk bayi, anak-anak, dan remaja
-   
-4. **Ortopedi (Orthopedics)** 🦴
-   - Perawatan tulang, sendi, dan sistem muskuloskeletal
-   
-5. **Dermatologi (Dermatology)** 🧴
-   - Perawatan kondisi kulit, rambut, dan kuku
-   
-6. **Oftalmologi (Ophthalmology)** 👁️
-   - Spesialis perawatan mata dan penglihatan
+1.  **Poli Umum (General Medicine)** 🩺
+    -   Pelayanan kesehatan primer untuk kondisi medis umum
+2.  **Kardiologi (Cardiology)** ❤️
+    -   Spesialis jantung dan sistem kardiovaskular
+3.  **Anak (Pediatrics)** 👶
+    -   Perawatan medis untuk bayi, anak-anak, dan remaja
+4.  **Ortopedi (Orthopedics)** 🦴
+    -   Perawatan tulang, sendi, dan sistem muskuloskeletal
+5.  **Kulit dan Kelamin (Dermatology & Venereology)** 🧴
+    -   Perawatan kondisi kulit, rambut, kuku, dan penyakit menular seksual
+6.  **Mata (Ophthalmology)** 👁️
+    -   Spesialis perawatan mata dan penglihatan
 
 ### 👨‍⚕️ Dokter Tersedia (Mock Data)
 
 #### Poli Umum
-- **Dr. Sarah Johnson** - General Practitioner
-  - Pengalaman 10+ tahun dalam kedokteran keluarga
-  - Jadwal: Senin-Jumat (09:00-15:00)
+-   **Dr. Sarah Johnson** - Dokter Umum
+    -   Pengalaman 10+ tahun dalam kedokteran keluarga.
+    -   Jadwal: Senin-Jumat (09:00-11:00, 14:00-15:00), Rabu (09:00-11:00)
 
 #### Kardiologi
-- **Dr. Michael Chen** - Cardiologist
-  - Spesialis pencegahan dan pengobatan penyakit jantung
-  - Jadwal: Senin, Rabu, Jumat (10:00-16:00)
+-   **Dr. Michael Chen** - Dokter Spesialis Jantung
+    -   Spesialis pencegahan dan pengobatan penyakit jantung.
+    -   Jadwal: Senin, Rabu, Jumat (10:00-11:00, 14:00-16:00), Rabu (10:00-11:00, 14:00-15:00)
 
-#### Pediatri
-- **Dr. Emily Rodriguez** - Pediatrician
-  - Ahli dalam perkembangan anak dan perawatan pediatrik
-  - Jadwal: Selasa, Kamis (09:00-14:00), Sabtu (09:00-11:00)
+#### Anak
+-   **Dr. Emily Rodriguez** - Dokter Spesialis Anak
+    -   Ahli dalam perkembangan anak dan perawatan pediatrik.
+    -   Jadwal: Selasa, Kamis (09:00-11:00, 14:00), Sabtu (09:00-11:00)
 
 #### Ortopedi
-- **Dr. Robert Wilson** - Orthopedic Surgeon
-  - Spesialis penggantian sendi dan kedokteran olahraga
-  - Jadwal: Senin, Rabu (08:00-14:00), Jumat (08:00-10:00)
+-   **Dr. Robert Wilson** - Dokter Bedah Ortopedi
+    -   Spesialis penggantian sendi dan kedokteran olahraga.
+    -   Jadwal: Senin, Rabu (08:00-10:00, 14:00), Jumat (08:00-10:00)
 
-#### Dermatologi
-- **Dr. Lisa Thompson** - Dermatologist
-  - Ahli deteksi kanker kulit dan prosedur kosmetik
-  - Jadwal: Selasa, Kamis (10:00-15:00), Sabtu (10:00-11:00)
+#### Kulit dan Kelamin
+-   **Dr. Lisa Thompson** - Dokter Spesialis Kulit dan Kelamin
+    -   Ahli deteksi kanker kulit dan prosedur kosmetik.
+    -   Jadwal: Selasa, Kamis (10:00-11:00, 14:00-15:00), Sabtu (10:00-11:00)
 
-#### Oftalmologi
-- **Dr. David Kim** - Ophthalmologist
-  - Spesialis penyakit retina dan operasi katarak
-  - Jadwal: Senin, Rabu, Jumat (09:00-15:00)
+#### Mata
+-   **Dr. David Kim** - Dokter Spesialis Mata
+    -   Spesialis penyakit retina dan operasi katarak.
+    -   Jadwal: Senin, Rabu (09:00-11:00, 15:00), Jumat (09:00-11:00)
 
 ### 📅 Fitur Reservasi
-- **Pilih Poliklinik**: Browse poliklinik berdasarkan kategori
-- **Pilih Dokter**: Lihat profil dan spesialisasi dokter
-- **Pilih Jadwal**: Pilih tanggal dan waktu yang tersedia
-- **Konfirmasi Booking**: Konfirmasi detail janji temu
-- **Nomor Antrian**: Dapatkan nomor antrian otomatis
-- **Status Tracking**: Pantau status janji temu (confirmed, cancelled, completed)
+-   **Pilih Poliklinik**: Browse poliklinik berdasarkan kategori
+-   **Pilih Dokter**: Lihat profil dan spesialisasi dokter
+-   **Pilih Jadwal**: Pilih tanggal dan waktu yang tersedia
+-   **Konfirmasi Booking**: Konfirmasi detail janji temu
+-   **(Opsional) Isi Keterangan/Keluhan**: Tambahkan catatan untuk dokter
+-   **Nomor Antrian**: Dapatkan nomor antrian otomatis
+-   **Estimasi Waktu Tunggu**: Lihat perkiraan waktu tunggu antrian ⏳
+-   **Status Tracking**: Pantau status janji temu (confirmed, cancelled, completed, rescheduled)
 
 ### 📱 Manajemen Janji Temu
-- **Janji Mendatang**: Lihat janji temu yang akan datang
-- **Riwayat**: Lihat janji temu yang sudah selesai
-- **Pembatalan**: Batalkan janji temu jika diperlukan
-- **Detail Lengkap**: Informasi dokter, waktu, nomor antrian, dan keluhan
+-   **Janji Mendatang**: Lihat janji temu yang akan datang
+-   **Riwayat**: Lihat janji temu yang sudah selesai atau dibatalkan
+-   **Pembatalan**: Batalkan janji temu jika diperlukan
+-   **Jadwal Ulang**: Ubah jadwal janji temu yang sudah ada
+-   **Detail Lengkap**: Informasi dokter, waktu, nomor antrian, keluhan, dan estimasi waktu tunggu
 
 ### 👤 Profil Pengguna
 - **Informasi Pribadi**: Kelola data pribadi
