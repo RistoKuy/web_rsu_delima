@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize responsive navigation
     handleResponsiveNavigation();
+    enhanceMobileNavigation();
 });
 
 // Navigation Functions
@@ -966,4 +967,30 @@ function handleResponsiveNavigation() {
     
     // Run initial check
     adjustNavigationForScreenSize();
+}
+
+// Enhanced mobile navigation feedback
+function enhanceMobileNavigation() {
+    const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
+    
+    mobileItems.forEach((item, index) => {
+        // Add touch start feedback
+        item.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(0.95)';
+        }, { passive: true });
+        
+        // Reset on touch end
+        item.addEventListener('touchend', function() {
+            setTimeout(() => {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = '';
+                }
+            }, 150);
+        }, { passive: true });
+        
+        // Reset on touch cancel
+        item.addEventListener('touchcancel', function() {
+            this.style.transform = '';
+        }, { passive: true });
+    });
 }
