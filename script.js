@@ -190,34 +190,36 @@ function showView(viewName) {
     }
 }
 
+// Enhanced Navigation Functions
 function showNavigation() {
-    // Show appropriate navigation based on screen size
     const desktopNav = document.getElementById('desktopNavbar');
-    const mobileTopBar = document.getElementById('mobileTopBar');
     const mobileBottomNav = document.getElementById('mobileBottomNav');
     
-    // Show desktop navigation
-    desktopNav.classList.remove('hidden');
-    desktopNav.classList.add('md:block');
-    
-    // Show mobile navigation
-    mobileTopBar.classList.remove('hidden');
-    mobileTopBar.classList.add('md:hidden');
-    mobileBottomNav.classList.remove('hidden');
-    mobileBottomNav.classList.add('md:hidden');
-    
-    // Update active navigation items
-    updateActiveNavItems();
+    if (desktopNav && mobileBottomNav) {
+        // Desktop navigation (hidden on mobile)
+        desktopNav.classList.remove('hidden');
+        
+        // Mobile bottom navigation (hidden on desktop)
+        mobileBottomNav.classList.remove('hidden');
+        
+        // Update active navigation items
+        updateActiveNavItems();
+    }
 }
 
 function hideNavigation() {
-    document.getElementById('desktopNavbar').classList.add('hidden');
-    document.getElementById('mobileTopBar').classList.add('hidden');
-    document.getElementById('mobileBottomNav').classList.add('hidden');
+    const elements = ['desktopNavbar', 'mobileBottomNav', 'mobileMenuOverlay'];
+    elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden');
+        }
+    });
 }
 
 function updateNavigation() {
-    if (['login', 'signup'].includes(appState.currentView)) {
+    const authViews = ['login', 'signup'];
+    if (authViews.includes(appState.currentView)) {
         hideNavigation();
     } else {
         showNavigation();
@@ -227,53 +229,93 @@ function updateNavigation() {
 function updateActiveNavItems() {
     const currentView = appState.currentView;
     
-    // Update desktop navigation
-    document.querySelectorAll('#desktopNavbar .nav-link').forEach(link => {
-        link.classList.remove('text-primary-600', 'border-primary-600');
-        link.classList.add('text-gray-700');
-    });
+    // Clear all active states first
+    clearActiveStates();
     
-    // Update mobile bottom navigation
-    document.querySelectorAll('#mobileBottomNav .mobile-nav-item').forEach(item => {
-        item.classList.remove('text-primary-600');
-        item.classList.add('text-gray-500');
-    });
-    
-    // Set active states based on current view
-    const navItemsMapping = {
+    // Navigation mapping for main views
+    const navMapping = {
         'home': 0,
         'findDoctor': 1,
         'myAppointments': 2,
         'profile': 3
     };
     
-    if (navItemsMapping.hasOwnProperty(currentView)) {
-        const activeIndex = navItemsMapping[currentView];
-        
-        // Update desktop nav
-        const desktopLinks = document.querySelectorAll('#desktopNavbar .nav-link');
-        if (desktopLinks[activeIndex]) {
-            desktopLinks[activeIndex].classList.remove('text-gray-700');
-            desktopLinks[activeIndex].classList.add('text-primary-600');
-        }
-        
-        // Update mobile nav
-        const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
-        if (mobileItems[activeIndex]) {
-            mobileItems[activeIndex].classList.remove('text-gray-500');
-            mobileItems[activeIndex].classList.add('text-primary-600');
-        }
+    if (navMapping.hasOwnProperty(currentView)) {
+        const activeIndex = navMapping[currentView];
+        setActiveState(activeIndex);
     }
 }
 
-// Mobile menu functions
+function clearActiveStates() {
+    // Clear desktop navigation states
+    const desktopLinks = document.querySelectorAll('#desktopNavbar .nav-link');
+    desktopLinks.forEach(link => {
+        link.classList.remove('text-primary-600', 'border-primary-600');
+        link.classList.add('text-gray-700');
+    });
+    
+    // Clear mobile navigation states
+    const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
+    mobileItems.forEach(item => {
+        item.classList.remove('text-primary-600', 'active');
+        item.classList.add('text-gray-500');
+    });
+}
+
+function setActiveState(index) {
+    // Set active state for desktop navigation
+    const desktopLinks = document.querySelectorAll('#desktopNavbar .nav-link');
+    if (desktopLinks[index]) {
+        desktopLinks[index].classList.remove('text-gray-700');
+        desktopLinks[index].classList.add('text-primary-600');
+    }
+    
+    // Set active state for mobile navigation (excluding menu button)
+    const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
+    if (mobileItems[index]) {
+        mobileItems[index].classList.remove('text-gray-500');
+        mobileItems[index].classList.add('text-primary-600', 'active');
+    }
+}
+
+// Enhanced Mobile Menu Functions
 function showMobileMenu() {
-    document.getElementById('mobileMenuOverlay').classList.remove('hidden');
+    const overlay = document.getElementById('mobileMenuOverlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        // Add smooth animation
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+        });
+        
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function hideMobileMenu() {
-    document.getElementById('mobileMenuOverlay').classList.add('hidden');
+    const overlay = document.getElementById('mobileMenuOverlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }, 300);
+    }
 }
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const overlay = document.getElementById('mobileMenuOverlay');
+    const menuButton = event.target.closest('[onclick*="showMobileMenu"]');
+    
+    if (overlay && !overlay.classList.contains('hidden') && 
+        !event.target.closest('#mobileMenuOverlay > div') && 
+        !menuButton) {
+        hideMobileMenu();
+    }
+});
 
 // Authentication Functions
 function handleLogin(event) {
