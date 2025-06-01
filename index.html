@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSU Delima - Hospital Appointment System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        },
+                        secondary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Loading Screen -->
+    <div id="loadingView" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h1 class="text-2xl font-bold text-primary-700 mb-2">RSU Delima</h1>
+            <p class="text-gray-600">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav id="navbar" class="bg-white shadow-lg sticky top-0 z-40 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-primary-700">RSU Delima</h1>
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="showView('home')" class="nav-link text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Home</button>
+                    <button onclick="showView('findDoctor')" class="nav-link text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Find Doctor</button>
+                    <button onclick="showView('myAppointments')" class="nav-link text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">My Appointments</button>
+                    <button onclick="showView('profile')" class="nav-link text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Profile</button>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">Logout</button>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-gray-700 hover:text-primary-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+                <button onclick="showView('home')" class="nav-link block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 w-full text-left">Home</button>
+                <button onclick="showView('findDoctor')" class="nav-link block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 w-full text-left">Find Doctor</button>
+                <button onclick="showView('myAppointments')" class="nav-link block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 w-full text-left">My Appointments</button>
+                <button onclick="showView('profile')" class="nav-link block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 w-full text-left">Profile</button>
+                <button onclick="logout()" class="block px-3 py-2 text-base font-medium text-red-600 hover:text-red-700 w-full text-left">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="min-h-screen">
+        <!-- Login View -->
+        <div id="loginView" class="view min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-extrabold text-gray-900">RSU Delima</h2>
+                    <p class="mt-2 text-sm text-gray-600">Sign in to your account</p>
+                </div>
+                <form class="mt-8 space-y-6" onsubmit="handleLogin(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email or User ID</label>
+                            <input id="loginEmail" name="email" type="email" required 
+                                   class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" 
+                                   placeholder="Enter your email">
+                        </div>
+                        <div>
+                            <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                            <input id="loginPassword" name="password" type="password" required 
+                                   class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" 
+                                   placeholder="Enter your password">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <button type="button" class="text-sm text-primary-600 hover:text-primary-500">
+                            Forgot your password?
+                        </button>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            Sign in
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" onclick="showView('signup')" class="text-sm text-primary-600 hover:text-primary-500">
+                            Don't have an account? Sign up
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sign Up View -->
+        <div id="signupView" class="view hidden min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-2xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-gray-900">Create Account</h2>
+                    <p class="mt-2 text-sm text-gray-600">Join RSU Delima for easy appointment booking</p>
+                </div>
+                <form class="space-y-6 bg-white p-6 rounded-lg shadow" onsubmit="handleSignup(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="signupName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input id="signupName" name="name" type="text" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="signupDob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                            <input id="signupDob" name="dob" type="date" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="signupAddress" class="block text-sm font-medium text-gray-700">Address</label>
+                            <textarea id="signupAddress" name="address" rows="3" required 
+                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label for="signupPhone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <input id="signupPhone" name="phone" type="tel" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="signupGender" class="block text-sm font-medium text-gray-700">Gender</label>
+                            <select id="signupGender" name="gender" required 
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="signupEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input id="signupEmail" name="email" type="email" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="signupBpjs" class="block text-sm font-medium text-gray-700">BPJS Number (Optional)</label>
+                            <input id="signupBpjs" name="bpjs" type="text" 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="signupPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                            <input id="signupPassword" name="password" type="password" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="signupConfirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <input id="signupConfirmPassword" name="confirmPassword" type="password" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-md font-medium">
+                            Create Account
+                        </button>
+                        <button type="button" onclick="showView('login')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium">
+                            Back to Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Home Dashboard View -->
+        <div id="homeView" class="view hidden">
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="mb-8">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900" id="welcomeMessage">Welcome!</h1>
+                        <p class="mt-2 text-gray-600">Manage your healthcare appointments with ease</p>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-shadow" onclick="showView('findDoctor')">
+                            <div class="p-6">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium text-gray-900">Find Doctor</h3>
+                                        <p class="text-sm text-gray-500">Search for doctors and specialists</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-shadow" onclick="showView('myAppointments')">
+                            <div class="p-6">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-secondary-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium text-gray-900">My Appointments</h3>
+                                        <p class="text-sm text-gray-500">View and manage your appointments</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-shadow md:col-span-2 lg:col-span-1" onclick="showView('profile')">
+                            <div class="p-6">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium text-gray-900">Profile</h3>
+                                        <p class="text-sm text-gray-500">Update your personal information</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Appointment -->
+                    <div id="upcomingAppointment" class="bg-white shadow rounded-lg p-6 mb-8 hidden">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Next Appointment</h2>
+                        <div id="upcomingAppointmentContent"></div>
+                    </div>
+
+                    <!-- Health Tips -->
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Health Tips</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border-l-4 border-primary-500 pl-4">
+                                <h3 class="font-medium text-gray-900">Stay Hydrated</h3>
+                                <p class="text-sm text-gray-600 mt-1">Drink at least 8 glasses of water daily to maintain good health.</p>
+                            </div>
+                            <div class="border-l-4 border-secondary-500 pl-4">
+                                <h3 class="font-medium text-gray-900">Regular Exercise</h3>
+                                <p class="text-sm text-gray-600 mt-1">Aim for 30 minutes of moderate exercise most days of the week.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Find Doctor/Polyclinic View -->
+        <div id="findDoctorView" class="view hidden">
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="mb-8">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Find Doctor</h1>
+                        <p class="mt-2 text-gray-600">Search for doctors by polyclinic or specialty</p>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input id="doctorSearch" type="text" placeholder="Search polyclinics or doctors..." 
+                                   class="w-full px-4 py-3 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                   oninput="filterPolyclinics()">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Polyclinics Grid -->
+                    <div id="polyclinicsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Polyclinics will be rendered here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Polyclinic Doctors List View -->
+        <div id="polyclinicDoctorsView" class="view hidden">
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="mb-8">
+                        <button onclick="showView('findDoctor')" class="text-primary-600 hover:text-primary-700 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Back to Polyclinics
+                        </button>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900" id="polyclinicTitle">Doctors</h1>
+                        <p class="mt-2 text-gray-600">Available doctors in this polyclinic</p>
+                    </div>
+
+                    <div id="doctorsList" class="space-y-4">
+                        <!-- Doctors will be rendered here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Profile & Schedule View -->
+        <div id="doctorScheduleView" class="view hidden">
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <button onclick="goBackToDoctorsList()" class="text-primary-600 hover:text-primary-700 mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to Doctors
+                    </button>
+
+                    <div class="bg-white shadow rounded-lg overflow-hidden">
+                        <!-- Doctor Profile Section -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-6">
+                                <div class="w-32 h-32 bg-gray-300 rounded-full flex items-center justify-center mb-4 md:mb-0 mx-auto md:mx-0">
+                                    <svg class="w-16 h-16 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="text-center md:text-left">
+                                    <h2 class="text-2xl font-bold text-gray-900" id="doctorName">Dr. Name</h2>
+                                    <p class="text-lg text-gray-600" id="doctorSpecialty">Specialty</p>
+                                    <p class="text-gray-500 mt-2" id="doctorBio">Doctor biography and experience...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Section -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-4">Available Schedule</h3>
+                            
+                            <!-- Date Selection -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+                                <div id="dateButtons" class="flex flex-wrap gap-2">
+                                    <!-- Date buttons will be generated by JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Time Slots -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Available Time Slots</label>
+                                <div id="timeSlots" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                    <!-- Time slots will be generated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Appointment View -->
+        <div id="bookAppointmentView" class="view hidden">
+            <div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="mb-8">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Confirm Appointment</h1>
+                        <p class="mt-2 text-gray-600">Review and confirm your appointment details</p>
+                    </div>
+
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <!-- Appointment Summary -->
+                        <div class="mb-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Appointment Details</h2>
+                            <div class="space-y-3" id="appointmentSummary">
+                                <!-- Appointment details will be filled by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Reason for Visit -->
+                        <form onsubmit="confirmBooking(event)">
+                            <div class="mb-6">
+                                <label for="reasonForVisit" class="block text-sm font-medium text-gray-700 mb-2">Reason for Visit / Brief Complaint</label>
+                                <textarea id="reasonForVisit" rows="4" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                          placeholder="Please describe your symptoms or reason for the visit..."></textarea>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-md font-medium">
+                                    Confirm Booking
+                                </button>
+                                <button type="button" onclick="goBackToDoctorSchedule()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-md font-medium">
+                                    Back to Schedule
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Success View -->
+        <div id="bookingSuccessView" class="view hidden">
+            <div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="bg-white shadow rounded-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        
+                        <h1 class="text-2xl font-bold text-gray-900 mb-2">Appointment Confirmed!</h1>
+                        <p class="text-gray-600 mb-6">Your appointment has been successfully booked.</p>
+
+                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <div id="successAppointmentDetails" class="space-y-2 text-left">
+                                <!-- Success appointment details will be filled by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Mock QR Code -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-2">QR Code for Check-in</p>
+                            <div class="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center mx-auto">
+                                <svg class="w-20 h-20 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="showView('myAppointments')" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-md font-medium">
+                                My Appointments
+                            </button>
+                            <button onclick="showView('home')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-md font-medium">
+                                Back to Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Appointments View -->
+        <div id="myAppointmentsView" class="view hidden">
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="mb-8">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">My Appointments</h1>
+                        <p class="mt-2 text-gray-600">View and manage your appointments</p>
+                    </div>
+
+                    <!-- Appointment Tabs -->
+                    <div class="mb-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                                <button id="upcomingTab" onclick="switchAppointmentTab('upcoming')" 
+                                        class="appointment-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Upcoming
+                                </button>
+                                <button id="pastTab" onclick="switchAppointmentTab('past')" 
+                                        class="appointment-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Past
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Appointments List -->
+                    <div id="appointmentsList" class="space-y-4">
+                        <!-- Appointments will be rendered here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profile View -->
+        <div id="profileView" class="view hidden">
+            <div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="mb-8">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Profile</h1>
+                        <p class="mt-2 text-gray-600">Manage your personal information</p>
+                    </div>
+
+                    <div class="bg-white shadow rounded-lg overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center mb-6">
+                                <div class="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h2 class="text-xl font-bold text-gray-900" id="profileName">User Name</h2>
+                                    <p class="text-gray-600" id="profileEmail">user@email.com</p>
+                                </div>
+                            </div>
+
+                            <div id="profileDetails" class="space-y-4">
+                                <!-- Profile details will be rendered here by JavaScript -->
+                            </div>
+
+                            <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                                <button class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-md font-medium">
+                                    Edit Profile
+                                </button>
+                                <button onclick="logout()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md font-medium">
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Notifications/Confirmations -->
+    <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Title</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-2 px-1 py-3">
+                    <p class="text-sm text-gray-500" id="modalMessage">Message content</p>
+                </div>
+                <div class="items-center px-1 py-3">
+                    <div id="modalButtons" class="flex flex-col sm:flex-row gap-2">
+                        <!-- Modal buttons will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
