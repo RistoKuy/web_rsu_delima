@@ -14,10 +14,21 @@ RSU Delima adalah sistem reservasi online yang memungkinkan pasien untuk:
 
 ## ✨ Fitur Utama
 
-### 🔐 Autentikasi Pengguna (Pass-through for Prototype)
-- **Login**: Masuk dengan email dan password
+### 🔐 Autentikasi Multi-Role (Pass-through for Prototype)
+- **Login Pasien**: Masuk sebagai pasien dengan email dan password
+- **Login Admin**: Akses ke admin console untuk manajemen data
+- **Login Dokter**: Akses khusus dokter (dalam pengembangan)
 - **Registrasi**: Pendaftaran akun baru dengan informasi lengkap
 - **Logout**: Keluar dari sistem dengan aman
+- **Navigation Hiding**: Navigation bars tersembunyi pada halaman login/signup
+
+### ⚙️ Admin Console (NEW!)
+- **Dashboard Statistics**: Statistik real-time pasien, jadwal dokter, dan slot tersedia
+- **Patient Data Verification**: Verifikasi, edit, dan hapus data pasien
+- **Doctor Schedule Management**: Kelola jadwal dokter dengan operasi CRUD lengkap
+- **Enhanced UI**: Kartu statistik dengan animasi dan styling modern
+- **Responsive Design**: Optimal untuk desktop dan mobile devices
+- **Modular Architecture**: File terpisah untuk maintainability (admin_index.html, admin_script.js, admin_style.css)
 
 ### 🏥 Poliklinik Tersedia
 1.  **Poli Umum (General Medicine)** 🩺
@@ -91,35 +102,52 @@ RSU Delima adalah sistem reservasi online yang memungkinkan pasien untuk:
 ## 🛠️ Teknologi yang Digunakan
 
 ### Frontend
-- **HTML5**: Struktur halaman web
-- **CSS3**: Styling dan animasi
-- **JavaScript (ES6+)**: Logika aplikasi dan interaktivitas
-- **Responsive Design**: Optimized untuk desktop dan mobile
+- **HTML5**: Struktur halaman web dengan semantic markup
+- **CSS3**: Advanced styling dengan Flexbox, Grid, dan animasi
+- **Tailwind CSS**: Utility-first CSS framework untuk rapid development
+- **JavaScript (ES6+)**: Logika aplikasi dan interaktivitas modern
+- **Responsive Design**: Mobile-first approach dengan media queries
 
 ### Fitur Teknis
 - **Single Page Application (SPA)**: Navigasi halaman tanpa reload
-- **Local Storage**: Penyimpanan data sesi pengguna
-- **Mock Data**: Simulasi database untuk demo
-- **Mobile-First Design**: Prioritas tampilan mobile
+- **Local Storage & Session Storage**: Penyimpanan data klien dan sesi
+- **Mock Data**: Simulasi database dengan data realistis untuk demo
 - **Progressive Enhancement**: Dukungan untuk berbagai browser
+- **Modular Architecture**: Pemisahan concern untuk maintainability
+- **CRUD Operations**: Create, Read, Update, Delete untuk admin console
+- **Dynamic Navigation**: Context-aware navigation hiding/showing
 
 ## 📁 Struktur File
 
 ```
 web_rsu_delima/
-├── index.html          # Halaman utama dengan semua view
-├── script.js           # Logika aplikasi JavaScript
-├── style.css           # Custom CSS styling
-└── README.md           # Dokumentasi project
+├── index.html                  # Halaman utama dengan semua patient views
+├── script.js                   # Logika aplikasi JavaScript untuk patient
+├── style.css                   # Custom CSS styling untuk patient interface
+├── admin/
+│   ├── admin_index.html        # Admin console interface
+│   ├── admin_script.js         # Admin-specific JavaScript logic
+│   └── admin_style.css         # Admin console styling
+├── test_navigation.html        # Test page untuk navigation functionality
+├── IMPLEMENTATION_SUMMARY.md   # Dokumentasi implementasi lengkap
+└── README.md                   # Dokumentasi project
 ```
 
 ## 🚀 Cara Menjalankan
 
 1. **Clone atau Download** project ini
-2. **Buka file `index.html`** di browser web
-3. **Mulai menggunakan** aplikasi dengan:
-   - Login dengan akun demo: `john@example.com` / `password123`
-   - Atau buat akun baru melalui fitur registrasi
+2. **Buka file `index.html`** di browser web untuk patient interface
+3. **Akses Admin Console** melalui `admin/admin_index.html` atau login sebagai admin
+4. **Mulai menggunakan** aplikasi dengan:
+   - **Patient Login**: Email dan password apa saja (prototype mode)
+   - **Admin Login**: Email dan password apa saja, pilih "Admin" pada toggle
+   - **Demo Account**: `john@example.com` / `password123`
+   - **Registrasi**: Buat akun baru melalui fitur registrasi
+
+### Login Options
+- 👤 **Pasien**: Akses ke booking appointments dan profile management
+- ⚙️ **Admin**: Akses ke admin console untuk data management
+- 👨‍⚕️ **Dokter**: Coming soon (sementara redirect ke patient view)
 
 ## 💻 Kompabilitas Browser
 
@@ -143,8 +171,22 @@ Aplikasi ini compatible dengan:
 - **Find Doctor**: Pencarian dokter dan poliklinik
 - **Appointments**: Manajemen janji temu
 - **Profile**: Pengaturan profil pengguna
+- **Smart Hiding**: Navigation tersembunyi pada login/signup screens
 
 ## 🔧 Fitur Khusus
+
+### Admin Console Features
+- **Real-time Statistics**: Dashboard dengan data pasien dan jadwal
+- **Patient Management**: CRUD operations untuk data pasien
+- **Doctor Schedule Management**: Kelola jadwal dokter secara lengkap
+- **Enhanced UI**: Styling modern dengan Tailwind CSS integration
+- **Responsive Admin Panel**: Optimal untuk semua ukuran layar
+
+### Enhanced Navigation System
+- **Context-Aware Navigation**: Otomatis hide/show berdasarkan halaman
+- **Responsive Navigation**: Desktop top bar, mobile bottom navigation
+- **Smooth Transitions**: Animasi halus untuk user experience yang baik
+- **Multi-Role Support**: Navigation disesuaikan dengan role pengguna
 
 ### Accessibility
 - Keyboard navigation support
