@@ -418,7 +418,7 @@ function loadUpcomingAppointment() {
                     <p class="font-medium text-gray-900">${doctor.name}</p>
                     <p class="text-sm text-gray-600">${polyclinic.name}</p>
                     <p class="text-sm text-gray-600">${formatDate(nextAppointment.date)} at ${nextAppointment.time}</p>
-                    <p class="text-sm text-gray-600">Queue: ${nextAppointment.queueNumber}</p>
+                    <p class="text-sm text-gray-600">Antrian: ${nextAppointment.queueNumber}</p>
                 </div>
                 <div class="mt-4 sm:mt-0">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -784,7 +784,7 @@ function renderAppointments() {
                                 <p class="text-gray-600">${polyclinic.name}</p>
                                 <div class="mt-2 text-sm text-gray-500">
                                     <p>📅 ${formatDate(appointment.date)} at ${appointment.time}</p>
-                                    <p>🎫 Queue: ${appointment.queueNumber}</p>
+                                    <p>🎫 Antrian: ${appointment.queueNumber}</p>
                                     <p>📝 ${appointment.reason}</p>
                                 </div>
                             </div>
