@@ -2,8 +2,7 @@
 let mockData = {
     users: [
         {
-            id: 1,
-            name: "John Doe",
+            id: 1,            name: "John Doe",
             email: "john@example.com",
             password: "password123",
             dob: "1990-01-15",
@@ -12,52 +11,50 @@ let mockData = {
             gender: "male",
             bpjs: "0001234567890"
         }
-    ],
-    polyclinics: [
+    ],    polyclinics: [
         {
             id: 1,
-            name: "General Medicine",
-            description: "Primary healthcare services for common medical conditions",
+            name: "Poli Umum",
+            description: "Layanan kesehatan primer untuk kondisi medis umum",
             icon: "🩺"
         },
         {
             id: 2,
-            name: "Cardiology",
-            description: "Heart and cardiovascular system specialists",
+            name: "Kardiologi",
+            description: "Spesialis jantung dan sistem kardiovaskular",
             icon: "❤️"
         },
         {
             id: 3,
-            name: "Pediatrics",
-            description: "Medical care for infants, children, and adolescents",
+            name: "Anak",
+            description: "Perawatan medis untuk bayi, anak-anak, dan remaja",
             icon: "👶"
         },
         {
             id: 4,
-            name: "Orthopedics",
-            description: "Bone, joint, and musculoskeletal system care",
+            name: "Ortopedi",
+            description: "Perawatan tulang, sendi, dan sistem muskuloskeletal",
             icon: "🦴"
         },
         {
             id: 5,
-            name: "Dermatology",
-            description: "Skin, hair, and nail condition treatments",
+            name: "Kulit dan Kelamin",
+            description: "Perawatan kondisi kulit, rambut, dan kuku",
             icon: "🧴"
         },
         {
             id: 6,
-            name: "Ophthalmology",
-            description: "Eye and vision care specialists",
+            name: "Mata",
+            description: "Spesialis perawatan mata dan penglihatan",
             icon: "👁️"
         }
     ],
-    doctors: [
-        {
+    doctors: [        {
             id: 1,
             name: "Dr. Sarah Johnson",
-            specialty: "General Practitioner",
+            specialty: "Dokter Umum",
             polyclinicId: 1,
-            bio: "Experienced general practitioner with 10+ years in family medicine.",
+            bio: "Dokter umum berpengalaman dengan 10+ tahun dalam kedokteran keluarga.",
             schedule: {
                 monday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
                 tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
@@ -65,49 +62,45 @@ let mockData = {
                 thursday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
                 friday: ["09:00", "10:00", "11:00", "14:00", "15:00"]
             }
-        },
-        {
+        },        {
             id: 2,
             name: "Dr. Michael Chen",
-            specialty: "Cardiologist",
+            specialty: "Dokter Spesialis Jantung",
             polyclinicId: 2,
-            bio: "Board-certified cardiologist specializing in heart disease prevention and treatment.",
+            bio: "Dokter spesialis jantung bersertifikat yang mengkhususkan diri dalam pencegahan dan pengobatan penyakit jantung.",
             schedule: {
                 monday: ["10:00", "11:00", "14:00", "15:00", "16:00"],
                 wednesday: ["10:00", "11:00", "14:00", "15:00"],
                 friday: ["10:00", "11:00", "14:00", "15:00", "16:00"]
             }
-        },
-        {
+        },        {
             id: 3,
             name: "Dr. Emily Rodriguez",
-            specialty: "Pediatrician",
+            specialty: "Dokter Spesialis Anak",
             polyclinicId: 3,
-            bio: "Dedicated pediatrician with expertise in child development and pediatric care.",
+            bio: "Dokter anak yang berdedikasi dengan keahlian dalam perkembangan anak dan perawatan pediatrik.",
             schedule: {
                 tuesday: ["09:00", "10:00", "11:00", "14:00"],
                 thursday: ["09:00", "10:00", "11:00", "14:00"],
                 saturday: ["09:00", "10:00", "11:00"]
             }
-        },
-        {
+        },        {
             id: 4,
             name: "Dr. Robert Wilson",
-            specialty: "Orthopedic Surgeon",
+            specialty: "Dokter Bedah Ortopedi",
             polyclinicId: 4,
-            bio: "Experienced orthopedic surgeon specializing in joint replacement and sports medicine.",
+            bio: "Dokter bedah ortopedi berpengalaman yang mengkhususkan diri dalam penggantian sendi dan kedokteran olahraga.",
             schedule: {
                 monday: ["08:00", "09:00", "10:00", "14:00"],
                 wednesday: ["08:00", "09:00", "10:00", "14:00"],
                 friday: ["08:00", "09:00", "10:00"]
             }
-        },
-        {
+        },        {
             id: 5,
             name: "Dr. Lisa Thompson",
-            specialty: "Dermatologist",
+            specialty: "Dokter Spesialis Kulit dan Kelamin",
             polyclinicId: 5,
-            bio: "Dermatologist with expertise in skin cancer detection and cosmetic procedures.",
+            bio: "Dokter spesialis kulit dan kelamin dengan keahlian dalam deteksi kanker kulit dan prosedur kosmetik.",
             schedule: {
                 tuesday: ["10:00", "11:00", "14:00", "15:00"],
                 thursday: ["10:00", "11:00", "14:00", "15:00"],
@@ -117,9 +110,9 @@ let mockData = {
         {
             id: 6,
             name: "Dr. David Kim",
-            specialty: "Ophthalmologist",
+            specialty: "Dokter Spesialis Mata",
             polyclinicId: 6,
-            bio: "Eye specialist with advanced training in retinal diseases and cataract surgery.",
+            bio: "Dokter spesialis mata dengan pelatihan lanjutan dalam penyakit retina dan operasi katarak.",
             schedule: {
                 monday: ["09:00", "10:00", "11:00", "15:00"],
                 wednesday: ["09:00", "10:00", "11:00", "15:00"],
@@ -308,12 +301,11 @@ function handleLogin(event) {
         if (!user) {
             // Create a new user for prototype purposes
             user = {
-                id: mockData.users.length + 1,
-                name: email.split('@')[0] || 'User', // Use email prefix as name
+                id: mockData.users.length + 1,                name: email.split('@')[0] || 'User', // Use email prefix as name
                 email: email,
                 password: password,
                 dob: '1990-01-01',
-                address: '123 Sample Street, Jakarta',
+                address: '123 Jalan Contoh, Jakarta',
                 phone: '+62812345678',
                 gender: 'male',
                 bpjs: ''
@@ -322,12 +314,11 @@ function handleLogin(event) {
         }
           appState.currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(user));
-        showView('home');
-        showModal('Success', 'Welcome to RSU Delima! You have been successfully logged in.', [
+        showView('home');        showModal('Sukses', 'Selamat datang di RSU Delima! Anda berhasil masuk.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
     } else {
-        showModal('Login Failed', 'Please enter both email and password.', [
+        showModal('Login Gagal', 'Harap masukkan email dan kata sandi.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
     }
@@ -343,16 +334,15 @@ function handleSignup(event) {
     // Basic validation for prototype - just check required fields
     const name = formData.get('name');
     const email = formData.get('email');
-    
-    if (!name || !email || !password) {
-        showModal('Error', 'Please fill in all required fields (Name, Email, Password).', [
+      if (!name || !email || !password) {
+        showModal('Error', 'Harap isi semua field yang diperlukan (Nama, Email, Kata Sandi).', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
         return;
     }
     
     if (password !== confirmPassword) {
-        showModal('Error', 'Passwords do not match. Please try again.', [
+        showModal('Error', 'Kata sandi tidak cocok. Silakan coba lagi.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
         return;
@@ -367,9 +357,8 @@ function handleSignup(event) {
         id: mockData.users.length + 1,
         name: name,
         email: email,
-        password: password,
-        dob: formData.get('dob') || '1990-01-01',
-        address: formData.get('address') || 'Sample Address, Jakarta',
+        password: password,        dob: formData.get('dob') || '1990-01-01',
+        address: formData.get('address') || 'Alamat Contoh, Jakarta',
         phone: formData.get('phone') || '+62812345678',
         gender: formData.get('gender') || 'male',
         bpjs: formData.get('bpjs') || ''
@@ -378,17 +367,16 @@ function handleSignup(event) {
     mockData.users.push(newUser);
     appState.currentUser = newUser;
     localStorage.setItem('currentUser', JSON.stringify(newUser));
-    
-    showView('home');
-    showModal('Account Created', 'Your account has been successfully created! Welcome to RSU Delima.', [
+      showView('home');
+    showModal('Akun Berhasil Dibuat', 'Akun Anda berhasil dibuat! Selamat datang di RSU Delima.', [
         { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
     ]);
 }
 
 function logout() {
-    showModal('Confirm Logout', 'Are you sure you want to logout?', [
-        { text: 'Cancel', class: 'btn-secondary', action: 'closeModal()' },
-        { text: 'Logout', class: 'btn-danger', action: 'confirmLogout()' }
+    showModal('Konfirmasi Keluar', 'Apakah Anda yakin ingin keluar?', [
+        { text: 'Batal', class: 'btn-secondary', action: 'closeModal()' },
+        { text: 'Keluar', class: 'btn-danger', action: 'confirmLogout()' }
     ]);
 }
 
@@ -402,7 +390,7 @@ function confirmLogout() {
 // Home Content Functions
 function loadHomeContent() {
     if (appState.currentUser) {
-        document.getElementById('welcomeMessage').textContent = `Welcome, ${appState.currentUser.name}!`;
+        document.getElementById('welcomeMessage').textContent = `Selamat datang, ${appState.currentUser.name}!`;
         
         // Load upcoming appointment
         loadUpcomingAppointment();
@@ -658,9 +646,8 @@ function loadAppointmentSummary() {
 function confirmBooking(event) {
     event.preventDefault();
     const reason = document.getElementById('reasonForVisit').value;
-    
-    if (!reason.trim()) {
-        showModal('Error', 'Please provide a reason for your visit.', [
+      if (!reason.trim()) {
+        showModal('Error', 'Harap berikan alasan kunjungan Anda.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
         return;
@@ -693,31 +680,30 @@ function confirmBooking(event) {
 function loadBookingSuccess(appointment) {
     const doctor = mockData.doctors.find(d => d.id === appointment.doctorId);
     const polyclinic = mockData.polyclinics.find(p => p.id === appointment.polyclinicId);
-    
-    document.getElementById('successAppointmentDetails').innerHTML = `
+      document.getElementById('successAppointmentDetails').innerHTML = `
         <div class="space-y-2">
             <div class="flex justify-between">
-                <span class="font-medium">Doctor:</span>
+                <span class="font-medium">Dokter:</span>
                 <span>${doctor.name}</span>
             </div>
             <div class="flex justify-between">
-                <span class="font-medium">Polyclinic:</span>
+                <span class="font-medium">Poliklinik:</span>
                 <span>${polyclinic.name}</span>
             </div>
             <div class="flex justify-between">
-                <span class="font-medium">Date:</span>
+                <span class="font-medium">Tanggal:</span>
                 <span>${formatDate(appointment.date)}</span>
             </div>
             <div class="flex justify-between">
-                <span class="font-medium">Time:</span>
+                <span class="font-medium">Waktu:</span>
                 <span>${appointment.time}</span>
             </div>
             <div class="flex justify-between">
-                <span class="font-medium">Queue Number:</span>
+                <span class="font-medium">Nomor Antrian:</span>
                 <span class="font-bold text-primary-600">${appointment.queueNumber}</span>
             </div>
             <div class="flex justify-between">
-                <span class="font-medium">Reason:</span>
+                <span class="font-medium">Alasan:</span>
                 <span>${appointment.reason}</span>
             </div>
         </div>
@@ -798,10 +784,9 @@ function renderAppointments() {
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(appointment.status)}">
                             ${getStatusText(appointment.status)}
                         </span>
-                        ${appointment.status === 'confirmed' && appState.currentAppointmentTab === 'upcoming' ? 
-                            `<button onclick="cancelAppointment(${appointment.id})" 
+                        ${appointment.status === 'confirmed' && appState.currentAppointmentTab === 'upcoming' ?                            `<button onclick="cancelAppointment(${appointment.id})" 
                                      class="text-red-600 hover:text-red-700 text-sm font-medium">
-                                Cancel
+                                Batalkan
                              </button>` : ''}
                     </div>
                 </div>
@@ -821,27 +806,26 @@ function getStatusBadgeClass(status) {
 
 function getStatusText(status) {
     switch(status) {
-        case 'confirmed': return 'Confirmed';
-        case 'cancelled': return 'Cancelled';
-        case 'completed': return 'Completed';
-        default: return 'Unknown';
+        case 'confirmed': return 'Dikonfirmasi';
+        case 'cancelled': return 'Dibatalkan';
+        case 'completed': return 'Selesai';
+        default: return 'Tidak Diketahui';
     }
 }
 
 function cancelAppointment(appointmentId) {
-    showModal('Cancel Appointment', 'Are you sure you want to cancel this appointment?', [
-        { text: 'Keep Appointment', class: 'btn-secondary', action: 'closeModal()' },
-        { text: 'Cancel Appointment', class: 'btn-danger', action: `confirmCancelAppointment(${appointmentId})` }
+    showModal('Batalkan Janji Temu', 'Apakah Anda yakin ingin membatalkan janji temu ini?', [
+        { text: 'Pertahankan Janji Temu', class: 'btn-secondary', action: 'closeModal()' },
+        { text: 'Batalkan Janji Temu', class: 'btn-danger', action: `confirmCancelAppointment(${appointmentId})` }
     ]);
 }
 
 function confirmCancelAppointment(appointmentId) {
     const appointment = mockData.appointments.find(apt => apt.id === appointmentId);
     if (appointment) {
-        appointment.status = 'cancelled';
-        closeModal();
+        appointment.status = 'cancelled';        closeModal();
         renderAppointments();
-        showModal('Appointment Cancelled', 'Your appointment has been successfully cancelled.', [
+        showModal('Janji Temu Dibatalkan', 'Janji temu Anda berhasil dibatalkan.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
     }
@@ -852,27 +836,26 @@ function loadProfileContent() {
     const user = appState.currentUser;
     document.getElementById('profileName').textContent = user.name;
     document.getElementById('profileEmail').textContent = user.email;
-    
-    document.getElementById('profileDetails').innerHTML = `
+      document.getElementById('profileDetails').innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
                 <p class="mt-1 text-sm text-gray-900">${formatDate(user.dob)}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Phone</label>
+                <label class="block text-sm font-medium text-gray-700">Telepon</label>
                 <p class="mt-1 text-sm text-gray-900">${user.phone}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Gender</label>
-                <p class="mt-1 text-sm text-gray-900 capitalize">${user.gender}</p>
+                <label class="block text-sm font-medium text-gray-700">Jenis Kelamin</label>
+                <p class="mt-1 text-sm text-gray-900 capitalize">${user.gender === 'male' ? 'Laki-laki' : 'Perempuan'}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">BPJS Number</label>
-                <p class="mt-1 text-sm text-gray-900">${user.bpjs || 'Not provided'}</p>
+                <label class="block text-sm font-medium text-gray-700">Nomor BPJS</label>
+                <p class="mt-1 text-sm text-gray-900">${user.bpjs || 'Tidak tersedia'}</p>
             </div>
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700">Address</label>
+                <label class="block text-sm font-medium text-gray-700">Alamat</label>
                 <p class="mt-1 text-sm text-gray-900">${user.address}</p>
             </div>
         </div>
@@ -908,7 +891,7 @@ function getButtonClass(className) {
 // Utility Functions
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('id-ID', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
@@ -917,7 +900,7 @@ function formatDate(dateString) {
 }
 
 function formatDateDisplay(date) {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('id-ID', { 
         month: 'short', 
         day: 'numeric' 
     });
@@ -928,7 +911,7 @@ function formatDateForInput(date) {
 }
 
 function getDayName(dayIndex) {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     return days[dayIndex];
 }
 
