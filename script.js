@@ -135,6 +135,63 @@ let appState = {
     appointmentToRescheduleId: null // Added for rescheduling
 };
 
+// Average consultation time in minutes
+const AVG_CONSULTATION_MINUTES = 15;
+
+// Function to calculate estimated wait time
+function calculateEstimatedWaitTime(doctorId, appointmentDate, appointmentTime) {
+    const now = new Date();
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+
+    // Only calculate for today's appointments that are in the future or very recent past (within avg consultation time)
+    if (appointmentDateTime.toDateString() !== now.toDateString() || appointmentDateTime < now.setMinutes(now.getMinutes() - AVG_CONSULTATION_MINUTES)) {
+        return null; // No wait time for past days or appointments too far in the past today
+    }
+    now.setMinutes(now.getMinutes() + AVG_CONSULTATION_MINUTES); // Reset now to current time for comparison
+
+    const appointmentsForDoctorToday = mockData.appointments.filter(apt =>
+        apt.doctorId === doctorId &&
+        apt.date === appointmentDate &&
+        apt.status === 'confirmed' && // Only consider confirmed appointments
+        new Date(`${apt.date}T${apt.time}`) < appointmentDateTime // Appointments before the current one
+    ).sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+
+    let patientsAhead = 0;
+    for (const apt of appointmentsForDoctorToday) {
+        const aptDateTime = new Date(`${apt.date}T${apt.time}`);
+        // Count patients whose appointment time is before the current appointment's time
+        // and are still considered "waiting" (i.e., their slot hasn't passed by more than AVG_CONSULTATION_MINUTES from now)
+        if (aptDateTime < appointmentDateTime) {
+             // A simple way to check if they are likely still in queue or recently finished
+            const estimatedEndTimeForPatientAhead = new Date(aptDateTime.getTime() + AVG_CONSULTATION_MINUTES * 60000);
+            if (estimatedEndTimeForPatientAhead > new Date()) { // If their estimated end time is still in the future from "now"
+                patientsAhead++;
+            }
+        }
+    }
+    
+    if (patientsAhead === 0 && appointmentDateTime <= new Date(new Date().getTime() + 5 * 60000) ) { // If it's your turn or very soon
+        return "Segera giliran Anda";
+    }
+
+    const waitTimeMinutes = patientsAhead * AVG_CONSULTATION_MINUTES;
+    
+    if (waitTimeMinutes <= 0) {
+         // If the appointment is in the future but no one is ahead (e.g., first appointment of the day)
+        const timeDiff = appointmentDateTime.getTime() - new Date().getTime();
+        if (timeDiff > 0) {
+            const minutesToAppointment = Math.round(timeDiff / 60000);
+            if (minutesToAppointment < 5) return "Segera giliran Anda";
+            if (minutesToAppointment < AVG_CONSULTATION_MINUTES) return `± ${minutesToAppointment} menit (menunggu jadwal)`;
+            return null; // If it's far in the future, no "wait time" yet, just scheduled time
+        }
+        return null; // Default for past or current slot with no one ahead
+    }
+
+    return `± ${waitTimeMinutes} menit`;
+}
+
+
 // Initialize Application
 document.addEventListener('DOMContentLoaded', function() {
     // Show loading screen briefly
@@ -412,18 +469,20 @@ function loadUpcomingAppointment() {
         const nextAppointment = userAppointments[0];
         const doctor = mockData.doctors.find(d => d.id === nextAppointment.doctorId);
         const polyclinic = mockData.polyclinics.find(p => p.id === doctor.polyclinicId);
+        const estimatedWaitTime = calculateEstimatedWaitTime(nextAppointment.doctorId, nextAppointment.date, nextAppointment.time);
 
         upcomingContent.innerHTML = `
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p class="font-medium text-gray-900">${doctor.name}</p>
                     <p class="text-sm text-gray-600">${polyclinic.name}</p>
-                    <p class="text-sm text-gray-600">${formatDate(nextAppointment.date)} at ${nextAppointment.time}</p>
+                    <p class="text-sm text-gray-600">${formatDate(nextAppointment.date)} pukul ${nextAppointment.time}</p>
                     <p class="text-sm text-gray-600">Antrian: ${nextAppointment.queueNumber}</p>
+                    ${estimatedWaitTime ? `<p class="text-sm text-blue-600">⏳ Estimasi Tunggu: ${estimatedWaitTime}</p>` : ''}
                 </div>
                 <div class="mt-4 sm:mt-0">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Confirmed
+                        Dikonfirmasi
                     </span>
                 </div>
             </div>
@@ -644,13 +703,16 @@ function goBackToDoctorSchedule() {
 function loadAppointmentSummary() {
     const doctor = appState.selectedDoctor;
     const polyclinic = appState.selectedPolyclinic;
-      document.getElementById('appointmentSummary').innerHTML = `
-        <div class="border-l-4 border-primary-500 pl-4">
+    const estimatedWaitTime = calculateEstimatedWaitTime(doctor.id, appState.selectedDate, appState.selectedTime);
+
+    document.getElementById('appointmentSummary').innerHTML = `
+        <div class="border-l-4 border-primary-500 pl-4 space-y-1">
             <p class="font-medium text-gray-900">Dokter: ${doctor.name}</p>
             <p class="text-gray-600">Spesialisasi: ${doctor.specialty}</p>
             <p class="text-gray-600">Poliklinik: ${polyclinic.name}</p>
             <p class="text-gray-600">Tanggal: ${formatDate(appState.selectedDate)}</p>
             <p class="text-gray-600">Waktu: ${appState.selectedTime}</p>
+            ${estimatedWaitTime ? `<p class="text-sm text-blue-600">⏳ Estimasi Tunggu: ${estimatedWaitTime}</p>` : ''}
         </div>
     `;
 }
@@ -703,7 +765,9 @@ function confirmBooking(event) {
 function loadBookingSuccess(appointment) {
     const doctor = mockData.doctors.find(d => d.id === appointment.doctorId);
     const polyclinic = mockData.polyclinics.find(p => p.id === appointment.polyclinicId);
-      document.getElementById('successAppointmentDetails').innerHTML = `
+    const estimatedWaitTime = calculateEstimatedWaitTime(appointment.doctorId, appointment.date, appointment.time);
+
+    document.getElementById('successAppointmentDetails').innerHTML = `
         <div class="space-y-2">
             <div class="flex justify-between">
                 <span class="font-medium">Dokter:</span>
@@ -725,6 +789,11 @@ function loadBookingSuccess(appointment) {
                 <span class="font-medium">Nomor Antrian:</span>
                 <span class="font-bold text-primary-600">${appointment.queueNumber}</span>
             </div>
+            ${estimatedWaitTime ? `
+            <div class="flex justify-between">
+                <span class="font-medium text-blue-600">⏳ Estimasi Tunggu:</span>
+                <span class="text-blue-600">${estimatedWaitTime}</span>
+            </div>` : ''}
             <div class="flex justify-between">
                 <span class="font-medium">Alasan:</span>
                 <span>${appointment.reason}</span>
@@ -789,6 +858,9 @@ function renderAppointments() {
     appointmentsList.innerHTML = filteredAppointments.map(appointment => {
         const doctor = mockData.doctors.find(d => d.id === appointment.doctorId);
         const polyclinic = mockData.polyclinics.find(p => p.id === appointment.polyclinicId); // Corrected: was doctor.polyclinicId
+        const estimatedWaitTime = (appointment.status === 'confirmed' && new Date(appointment.date + ' ' + appointment.time) >= now) 
+                                  ? calculateEstimatedWaitTime(appointment.doctorId, appointment.date, appointment.time) 
+                                  : null;
         
         let actionButtonsHTML = '';
         if (appointment.status === 'confirmed' && appState.currentAppointmentTab === 'upcoming' && new Date(appointment.date + ' ' + appointment.time) > now) {
@@ -812,9 +884,10 @@ function renderAppointments() {
                                 <h3 class="text-lg font-semibold text-gray-900">${doctor.name}</h3>
                                 <p class="text-gray-600">${polyclinic.name}</p>
                                 <div class="mt-2 text-sm text-gray-500">
-                                    <p>📅 ${formatDate(appointment.date)} at ${appointment.time}</p>
+                                    <p>📅 ${formatDate(appointment.date)} pukul ${appointment.time}</p>
                                     <p>🎫 Antrian: ${appointment.queueNumber}</p>
-                                    <p>📝 ${appointment.reason || 'Tidak ada keterangan tambahan.'}</p>
+                                    ${estimatedWaitTime ? `<p class="text-blue-600">⏳ Estimasi Tunggu: ${estimatedWaitTime}</p>` : ''}
+                                    <p>📝 Alasan: ${appointment.reason || 'Tidak ada keterangan tambahan.'}</p>
                                 </div>
                             </div>
                         </div>
