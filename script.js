@@ -476,7 +476,7 @@ function selectPolyclinic(polyclinicId) {
 }
 
 function loadDoctorsList() {
-    document.getElementById('polyclinicTitle').textContent = `${appState.selectedPolyclinic.name} Doctors`;
+    document.getElementById('polyclinicTitle').textContent = `Dokter ${appState.selectedPolyclinic.name}`;
     
     const doctors = mockData.doctors.filter(d => d.polyclinicId === appState.selectedPolyclinic.id);
     const doctorsList = document.getElementById('doctorsList');
@@ -497,7 +497,7 @@ function loadDoctorsList() {
                 <div class="mt-4 sm:mt-0 sm:ml-4">
                     <button onclick="selectDoctor(${doctor.id})" 
                             class="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium">
-                        View Schedule
+                        Lihat Jadwal
                     </button>
                 </div>
             </div>
@@ -521,38 +521,44 @@ function loadDoctorSchedule() {
     document.getElementById('doctorName').textContent = doctor.name;
     document.getElementById('doctorSpecialty').textContent = doctor.specialty;
     document.getElementById('doctorBio').textContent = doctor.bio;
-    
-    generateDateButtons();
+      generateDateButtons();
     appState.selectedDate = null;
     appState.selectedTime = null;
-    document.getElementById('timeSlots').innerHTML = '<p class="col-span-full text-gray-500 text-center">Please select a date first</p>';
+    document.getElementById('timeSlots').innerHTML = '<p class="col-span-full text-gray-500 text-center">Silakan pilih tanggal terlebih dahulu</p>';
 }
 
 function generateDateButtons() {
     const dateButtons = document.getElementById('dateButtons');
     const today = new Date();
     const buttons = [];
-    
+    // Map Indonesian to English for schedule lookup
+    const indoToEng = {
+        minggu: 'sunday',
+        senin: 'monday',
+        selasa: 'tuesday',
+        rabu: 'wednesday',
+        kamis: 'thursday',
+        jumat: 'friday',
+        sabtu: 'saturday'
+    };
     for (let i = 0; i < 7; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
-        const dayName = getDayName(date.getDay());
-        
-        // Check if doctor has schedule for this day
-        const hasSchedule = appState.selectedDoctor.schedule[dayName.toLowerCase()];
-        
+        const dayNameIndo = getDayName(date.getDay());
+        const dayNameEng = indoToEng[dayNameIndo];
+        // Check if doctor has schedule for this day (using English key)
+        const hasSchedule = appState.selectedDoctor.schedule[dayNameEng];
         buttons.push(`
-            <button onclick="selectDate('${formatDateForInput(date)}')" 
+            <button onclick="selectDate('${formatDateForInput(date)}')"
                     class="px-4 py-2 text-sm font-medium rounded-md border ${hasSchedule ? 'border-gray-300 text-gray-700 hover:bg-gray-50' : 'border-gray-200 text-gray-400 cursor-not-allowed'}"
                     ${!hasSchedule ? 'disabled' : ''}>
                 <div class="text-center">
-                    <div class="font-medium">${dayName}</div>
+                    <div class="font-medium text-capitalize">${dayNameIndo.charAt(0).toUpperCase() + dayNameIndo.slice(1)}</div>
                     <div class="text-xs">${formatDateDisplay(date)}</div>
                 </div>
             </button>
         `);
     }
-    
     dateButtons.innerHTML = buttons.join('');
 }
 
@@ -574,31 +580,37 @@ function selectDate(dateString) {
 
 function loadTimeSlots(dateString) {
     const date = new Date(dateString);
-    const dayName = getDayName(date.getDay()).toLowerCase();
-    const timeSlots = appState.selectedDoctor.schedule[dayName] || [];
-    
+    const dayNameIndo = getDayName(date.getDay());
+    const indoToEng = {
+        minggu: 'sunday',
+        senin: 'monday',
+        selasa: 'tuesday',
+        rabu: 'wednesday',
+        kamis: 'thursday',
+        jumat: 'friday',
+        sabtu: 'saturday'
+    };
+    const dayNameEng = indoToEng[dayNameIndo];
+    const timeSlots = appState.selectedDoctor.schedule[dayNameEng] || [];
     const timeSlotsContainer = document.getElementById('timeSlots');
-    
     if (timeSlots.length === 0) {
-        timeSlotsContainer.innerHTML = '<p class="col-span-full text-gray-500 text-center">No available slots for this date</p>';
+        timeSlotsContainer.innerHTML = '<p class="col-span-full text-gray-500 text-center">Tidak ada slot tersedia untuk tanggal ini</p>';
         return;
     }
-    
     // Check for existing appointments
-    const existingAppointments = mockData.appointments.filter(apt => 
-        apt.doctorId === appState.selectedDoctor.id && 
+    const existingAppointments = mockData.appointments.filter(apt =>
+        apt.doctorId === appState.selectedDoctor.id &&
         apt.date === dateString &&
         apt.status !== 'cancelled'
     );
-    
     timeSlotsContainer.innerHTML = timeSlots.map(time => {
         const isBooked = existingAppointments.some(apt => apt.time === time);
         return `
-            <button onclick="${isBooked ? '' : `selectTime('${time}')`}" 
+            <button onclick="${isBooked ? '' : `selectTime('${time}')`}"
                     class="p-2 text-sm font-medium rounded-md border ${isBooked ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}"
                     ${isBooked ? 'disabled' : ''}>
                 ${time}
-                ${isBooked ? '<div class="text-xs text-red-500">Booked</div>' : ''}
+                ${isBooked ? '<div class="text-xs text-red-500">Sudah dipesan</div>' : ''}
             </button>
         `;
     }).join('');
@@ -631,14 +643,13 @@ function goBackToDoctorSchedule() {
 function loadAppointmentSummary() {
     const doctor = appState.selectedDoctor;
     const polyclinic = appState.selectedPolyclinic;
-    
-    document.getElementById('appointmentSummary').innerHTML = `
+      document.getElementById('appointmentSummary').innerHTML = `
         <div class="border-l-4 border-primary-500 pl-4">
-            <p class="font-medium text-gray-900">Doctor: ${doctor.name}</p>
-            <p class="text-gray-600">Specialty: ${doctor.specialty}</p>
-            <p class="text-gray-600">Polyclinic: ${polyclinic.name}</p>
-            <p class="text-gray-600">Date: ${formatDate(appState.selectedDate)}</p>
-            <p class="text-gray-600">Time: ${appState.selectedTime}</p>
+            <p class="font-medium text-gray-900">Dokter: ${doctor.name}</p>
+            <p class="text-gray-600">Spesialisasi: ${doctor.specialty}</p>
+            <p class="text-gray-600">Poliklinik: ${polyclinic.name}</p>
+            <p class="text-gray-600">Tanggal: ${formatDate(appState.selectedDate)}</p>
+            <p class="text-gray-600">Waktu: ${appState.selectedTime}</p>
         </div>
     `;
 }
@@ -752,9 +763,8 @@ function renderAppointments() {
             <div class="text-center py-12">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No appointments</h3>
-                <p class="mt-1 text-sm text-gray-500">You don't have any ${appState.currentAppointmentTab} appointments.</p>
+                </svg>                <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada janji temu</h3>
+                <p class="mt-1 text-sm text-gray-500">Anda tidak memiliki janji temu ${appState.currentAppointmentTab === 'upcoming' ? 'mendatang' : 'sebelumnya'}.</p>
             </div>
         `;
         return;
@@ -911,7 +921,8 @@ function formatDateForInput(date) {
 }
 
 function getDayName(dayIndex) {
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    // Return Indonesian day names in lowercase to match the UI and for clarity
+    const days = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
     return days[dayIndex];
 }
 
