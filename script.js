@@ -157,6 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
             showView('login');
         }
     }, 2000);
+    
+    // Initialize responsive navigation
+    handleResponsiveNavigation();
+    enhanceMobileNavigation();
 });
 
 // Navigation Functions
@@ -194,13 +198,18 @@ function showView(viewName) {
 function showNavigation() {
     const desktopNav = document.getElementById('desktopNavbar');
     const mobileBottomNav = document.getElementById('mobileBottomNav');
+    const isMobile = window.innerWidth < 768; // md breakpoint
     
     if (desktopNav && mobileBottomNav) {
-        // Desktop navigation (hidden on mobile)
-        desktopNav.classList.remove('hidden');
-        
-        // Mobile bottom navigation (hidden on desktop)
-        mobileBottomNav.classList.remove('hidden');
+        if (isMobile) {
+            // Mobile view: hide desktop nav, show mobile nav
+            desktopNav.classList.add('hidden');
+            mobileBottomNav.classList.remove('hidden');
+        } else {
+            // Desktop view: show desktop nav, hide mobile nav
+            desktopNav.classList.remove('hidden');
+            mobileBottomNav.classList.add('hidden');
+        }
         
         // Update active navigation items
         updateActiveNavItems();
@@ -208,7 +217,7 @@ function showNavigation() {
 }
 
 function hideNavigation() {
-    const elements = ['desktopNavbar', 'mobileBottomNav', 'mobileMenuOverlay'];
+    const elements = ['desktopNavbar', 'mobileBottomNav'];
     elements.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -223,6 +232,8 @@ function updateNavigation() {
         hideNavigation();
     } else {
         showNavigation();
+        // Ensure responsive navigation is properly set
+        handleResponsiveNavigation();
     }
 }
 
@@ -269,8 +280,7 @@ function setActiveState(index) {
         desktopLinks[index].classList.remove('text-gray-700');
         desktopLinks[index].classList.add('text-primary-600');
     }
-    
-    // Set active state for mobile navigation (excluding menu button)
+      // Set active state for mobile navigation
     const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
     if (mobileItems[index]) {
         mobileItems[index].classList.remove('text-gray-500');
@@ -278,44 +288,11 @@ function setActiveState(index) {
     }
 }
 
-// Enhanced Mobile Menu Functions
-function showMobileMenu() {
-    const overlay = document.getElementById('mobileMenuOverlay');
-    if (overlay) {
-        overlay.classList.remove('hidden');
-        // Add smooth animation
-        requestAnimationFrame(() => {
-            overlay.style.opacity = '1';
-        });
-        
-        // Prevent body scroll when menu is open
-        document.body.style.overflow = 'hidden';
-    }
-}
+// Enhanced Mobile Menu Functions - REMOVED
+// Mobile menu functions removed as menu button was removed from navigation
 
-function hideMobileMenu() {
-    const overlay = document.getElementById('mobileMenuOverlay');
-    if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.classList.add('hidden');
-            // Restore body scroll
-            document.body.style.overflow = '';
-        }, 300);
-    }
-}
-
-// Close mobile menu when clicking outside
-document.addEventListener('click', function(event) {
-    const overlay = document.getElementById('mobileMenuOverlay');
-    const menuButton = event.target.closest('[onclick*="showMobileMenu"]');
-    
-    if (overlay && !overlay.classList.contains('hidden') && 
-        !event.target.closest('#mobileMenuOverlay > div') && 
-        !menuButton) {
-        hideMobileMenu();
-    }
-});
+// Close mobile menu when clicking outside - REMOVED
+// Event listener removed as mobile menu overlay no longer exists
 
 // Authentication Functions
 function handleLogin(event) {
@@ -953,4 +930,67 @@ function formatDateForInput(date) {
 function getDayName(dayIndex) {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[dayIndex];
+}
+
+// Responsive Navigation Handler
+function handleResponsiveNavigation() {
+    // Handle window resize to adjust navigation visibility
+    function adjustNavigationForScreenSize() {
+        const desktopNav = document.getElementById('desktopNavbar');
+        const mobileBottomNav = document.getElementById('mobileBottomNav');
+        const isMobile = window.innerWidth < 768; // md breakpoint
+        
+        // Only adjust if user is authenticated (not on login/signup pages)
+        const authViews = ['login', 'signup'];
+        if (!authViews.includes(appState.currentView)) {
+            if (isMobile) {
+                // Mobile view: hide desktop nav, show mobile nav
+                if (desktopNav) {
+                    desktopNav.classList.add('hidden');
+                }
+                if (mobileBottomNav) {
+                    mobileBottomNav.classList.remove('hidden');
+                }            } else {
+                // Desktop view: show desktop nav, hide mobile nav
+                if (desktopNav) {
+                    desktopNav.classList.remove('hidden');
+                }
+                if (mobileBottomNav) {
+                    mobileBottomNav.classList.add('hidden');
+                }
+            }
+        }
+    }
+    
+    // Add window resize listener
+    window.addEventListener('resize', adjustNavigationForScreenSize);
+    
+    // Run initial check
+    adjustNavigationForScreenSize();
+}
+
+// Enhanced mobile navigation feedback
+function enhanceMobileNavigation() {
+    const mobileItems = document.querySelectorAll('#mobileBottomNav .mobile-nav-item');
+    
+    mobileItems.forEach((item, index) => {
+        // Add touch start feedback
+        item.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(0.95)';
+        }, { passive: true });
+        
+        // Reset on touch end
+        item.addEventListener('touchend', function() {
+            setTimeout(() => {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = '';
+                }
+            }, 150);
+        }, { passive: true });
+        
+        // Reset on touch cancel
+        item.addEventListener('touchcancel', function() {
+            this.style.transform = '';
+        }, { passive: true });
+    });
 }

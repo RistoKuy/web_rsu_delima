@@ -453,6 +453,7 @@ input:checked + .toggle-slider:before {
     justify-content: center;
     color: #6b7280;
     touch-action: manipulation;
+    overflow: visible; /* Allow for visual effects */
 }
 
 .mobile-nav-item:active {
@@ -473,6 +474,31 @@ input:checked + .toggle-slider:before {
     transform: scale(1.1);
 }
 
+/* Enhanced active state indicator */
+.mobile-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 0 0 2px 2px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateX(-50%) translateY(-8px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
 /* Mobile Bottom Navigation - Enhanced Design */
 #mobileBottomNav {
     background: rgba(255, 255, 255, 0.98);
@@ -486,13 +512,17 @@ input:checked + .toggle-slider:before {
     left: 0;
     right: 0;
     z-index: 50;
+    min-height: 60px;
+    max-height: 80px;
 }
 
 #mobileBottomNav .flex {
     height: 100%;
     align-items: center;
-    justify-content: space-around;
-    padding: 0.5rem 0.25rem;
+    justify-content: space-evenly;
+    padding: 0.5rem 0.75rem;
+    min-height: 100%;
+    gap: 0.25rem;
 }
 
 /* Mobile Navigation Items - Enhanced */
@@ -507,9 +537,16 @@ input:checked + .toggle-slider:before {
     color: #6b7280;
     touch-action: manipulation;
     border-radius: 12px;
-    padding: 0.25rem 0.5rem;
+    padding: 0.5rem 0.25rem;
     flex: 1;
-    max-width: 80px;
+    min-width: 0;
+    max-width: none;
+    overflow: hidden;
+    text-align: center;
+    cursor: pointer;
+    /* Ensure minimum touch target size for accessibility */
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .mobile-nav-item:active {
@@ -538,50 +575,77 @@ input:checked + .toggle-slider:before {
 }
 
 .mobile-nav-item span {
-    font-size: 0.6rem;
-    font-weight: 500;
-    text-align: center;
+    font-size: 0.7rem;
     line-height: 1;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
 }
 
-/* Enhanced Mobile Menu Overlay */
-#mobileMenuOverlay {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    background: rgba(0, 0, 0, 0.4);
-    opacity: 0;
-    transition: all 0.3s ease-in-out;
+/* Better spacing for very small screens */
+@media (max-width: 360px) {
+    .mobile-nav-item {
+        padding-left: 0.125rem;
+        padding-right: 0.125rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.55rem;
+        line-height: 0.8;
+    }
 }
 
-#mobileMenuOverlay:not(.hidden) {
-    opacity: 1;
+/* Responsive adjustments for very small screens */
+@media (max-width: 320px) {
+    .mobile-nav-item span {
+        font-size: 0.6rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    
+    .mobile-nav-item svg {
+        width: 1rem;
+        height: 1rem;
+    }
 }
 
-#mobileMenuOverlay > div {
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+/* Responsive adjustments for small screens */
+@media (max-width: 375px) {
+    .mobile-nav-item {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.65rem;
+    }
 }
 
-#mobileMenuOverlay:not(.hidden) > div {
-    transform: translateX(0);
-}
-
-/* Mobile Menu Content Styling */
-#mobileMenuOverlay .p-4 {
-    padding: 1.5rem;
-}
-
-#mobileMenuOverlay button {
-    transition: all 0.2s ease-in-out;
-}
-
-#mobileMenuOverlay button:hover {
-    transform: translateX(4px);
+/* Responsive adjustments for larger mobile screens */
+@media (min-width: 376px) and (max-width: 767px) {
+    .mobile-nav-item {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.75rem;
+    }
 }
 
 /* Mobile responsive improvements */
 @media (max-width: 767px) {
+    /* Optimize for safe area on devices with notches/rounded corners */
+    #mobileBottomNav {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    
     /* Mobile-first layout - full screen experience */
     body {
         overflow-x: hidden;
@@ -698,6 +762,93 @@ input:checked + .toggle-slider:before {
     }
 }
 
+/* Enhanced Mobile Navigation Styling */
+@media (max-width: 767px) {
+    #mobileBottomNav {
+        /* Enhanced background with subtle gradient */
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+        /* Improved border */
+        border-top: 1px solid rgba(229, 231, 235, 0.8);
+        /* Better shadow for depth */
+        box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06), 0 -1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Ensure navigation items are evenly distributed */
+    #mobileBottomNav .flex {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: stretch;
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Enhanced navigation item styling */
+    .mobile-nav-item {
+        /* Better flex distribution */
+        flex: 1 1 0%;
+        /* Consistent max width to prevent stretching */
+        max-width: calc(25% - 0.5rem);
+        /* Better visual feedback */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Improved active state */
+    .mobile-nav-item.active {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.08) 100%);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+    }
+    
+    /* Better text sizing and spacing */
+    .mobile-nav-item span {
+        font-size: 0.6rem;
+        font-weight: 500;
+        letter-spacing: 0.025em;
+        margin-top: 0.125rem;
+    }
+    
+    /* Enhanced icon styling */
+    .mobile-nav-item .w-6 {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-bottom: 0.125rem;
+    }
+}
+
+/* Very small screens optimization */
+@media (max-width: 360px) {
+    #mobileBottomNav {
+        height: 70px;
+        max-height: 70px;
+    }
+    
+    .mobile-nav-item {
+        min-height: 54px;
+        padding: 0.375rem 0.125rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.55rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+/* Large mobile screens optimization */
+@media (min-width: 430px) and (max-width: 767px) {
+    .mobile-nav-item span {
+        font-size: 0.7rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+}
+
 /* Prevent text selection on navigation items */
 .mobile-nav-item,
 .nav-link {
@@ -773,5 +924,132 @@ input:checked + .toggle-slider:before {
     @keyframes shimmer {
         0% { left: -100%; }
         100% { left: 100%; }
+    }
+}
+
+/* Enhanced responsive navigation */
+@media (max-width: 767px) {
+    /* Force hide desktop navigation on mobile */
+    #desktopNavbar {
+        display: none !important;
+    }
+    
+    /* Ensure mobile navigation is properly positioned */
+    #mobileBottomNav {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 768px) {
+    /* Force hide mobile navigation on desktop */
+    #mobileBottomNav {
+        display: none !important;
+    }
+    
+    /* Ensure desktop navigation is visible */
+    #desktopNavbar {
+        display: block !important;
+    }
+    
+    /* Remove mobile bottom padding on desktop */
+    main {
+        padding-bottom: 0 !important;
+    }
+}
+
+/* Smooth navigation transitions */
+#desktopNavbar,
+#mobileBottomNav {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Enhanced responsive navigation for various screen orientations */
+@media (max-width: 767px) and (orientation: landscape) {
+    #mobileBottomNav {
+        padding: 0.25rem 0;
+        min-height: 50px;
+    }
+    
+    .mobile-nav-item {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.6rem;
+    }
+    
+    .mobile-nav-item .w-6 {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+/* Very large mobile screens (tablets in portrait) */
+@media (min-width: 480px) and (max-width: 767px) {
+    .mobile-nav-item {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .mobile-nav-item span {
+        font-size: 0.8rem;
+    }
+    
+    #mobileBottomNav {
+        min-height: 70px;
+    }
+}
+
+/* Touch target optimization for better accessibility */
+@media (max-width: 767px) {
+    .mobile-nav-item {
+        min-height: 48px; /* WCAG recommended minimum touch target */
+        min-width: 48px;
+    }
+}
+
+/* Enhanced touch feedback for mobile navigation */
+@media (max-width: 767px) {
+    .mobile-nav-item {
+        /* Add subtle border for better definition */
+        border: 1px solid transparent;
+        /* Improved transition for better user feedback */
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                    transform 0.1s ease-out;
+    }
+    
+    /* Enhanced hover state (for devices that support hover) */
+    .mobile-nav-item:hover:not(.active) {
+        background: rgba(107, 114, 128, 0.05);
+        border-color: rgba(107, 114, 128, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    /* Better active press feedback */
+    .mobile-nav-item:active {
+        transform: scale(0.96) translateY(0);
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Enhanced active state with better visual hierarchy */
+    .mobile-nav-item.active {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #1d4ed8;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Enhanced icon animation for active state */
+    .mobile-nav-item.active svg {
+        transform: scale(1.15);
+        filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.3));
+    }
+    
+    /* Better text contrast for active state */
+    .mobile-nav-item.active span {
+        color: #1d4ed8;
+        font-weight: 600;
     }
 }
