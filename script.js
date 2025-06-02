@@ -168,6 +168,23 @@ let mockData = {
 // Average consultation time in minutes
 const AVG_CONSULTATION_MINUTES = 15;
 
+// Function to generate proper queue number
+function generateQueueNumber(doctorId, appointmentDate, appointmentTime) {
+    // Get all appointments for this doctor, date, and time slot that are not cancelled
+    const existingAppointments = mockData.appointments.filter(apt =>
+        apt.doctorId === doctorId &&
+        apt.date === appointmentDate &&
+        apt.time === appointmentTime &&
+        apt.status !== 'cancelled'
+    );
+    
+    // Generate queue number: A001, A002, etc. for first doctor, B001, B002 for second doctor, etc.
+    const doctorLetter = String.fromCharCode(65 + (doctorId - 1)); // A for doctor 1, B for doctor 2, etc.
+    const queueNumber = existingAppointments.length + 1;
+    
+    return `${doctorLetter}${String(queueNumber).padStart(3, '0')}`;
+}
+
 // Function to calculate estimated wait time
 function calculateEstimatedWaitTime(doctorId, appointmentDate, appointmentTime) {
     const now = new Date();
@@ -655,6 +672,7 @@ function generateDateButtons() {
     const dateButtons = document.getElementById('dateButtons');
     const today = new Date();
     const buttons = [];
+    
     // Map Indonesian to English for schedule lookup
     const indoToEng = {
         minggu: 'sunday',
@@ -665,25 +683,129 @@ function generateDateButtons() {
         jumat: 'friday',
         sabtu: 'saturday'
     };
-    for (let i = 0; i < 7; i++) {
+    
+    // Generate dates from tomorrow (H-30) to H-1 (30 days advance booking, stop 1 day before)
+    for (let i = 1; i <= 30; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
         const dayNameIndo = getDayName(date.getDay());
         const dayNameEng = indoToEng[dayNameIndo];
+        
         // Check if doctor has schedule for this day (using English key)
         const hasSchedule = appState.selectedDoctor.schedule[dayNameEng];
-        buttons.push(`
+        
+        // Show only first 14 days initially, with option to load more
+        if (i <= 14) {
+            buttons.push(`
+                <button onclick="selectDate('${formatDateForInput(date)}')"
+                        class="px-4 py-2 text-sm font-medium rounded-md border ${hasSchedule ? 'border-gray-300 text-gray-700 hover:bg-gray-50' : 'border-gray-200 text-gray-400 cursor-not-allowed'}"
+                        ${!hasSchedule ? 'disabled' : ''}>
+                    <div class="text-center">
+                        <div class="font-medium text-capitalize">${dayNameIndo.charAt(0).toUpperCase() + dayNameIndo.slice(1)}</div>
+                        <div class="text-xs">${formatDateDisplay(date)}</div>
+                        ${hasSchedule ? getAvailabilityInfo(date, dayNameEng) : ''}
+                    </div>
+                </button>
+            `);
+        }
+    }
+    
+    // Add "Load More Dates" button
+    buttons.push(`
+        <button onclick="loadMoreDates()" id="loadMoreBtn"
+                class="px-4 py-2 text-sm font-medium rounded-md border border-blue-300 text-blue-700 hover:bg-blue-50">
+            <div class="text-center">
+                <div class="font-medium">Lihat Lebih</div>
+                <div class="text-xs">16 hari kedepan</div>
+            </div>
+        </button>
+    `);
+    
+    dateButtons.innerHTML = buttons.join('');
+}
+
+function getAvailabilityInfo(date, dayNameEng) {
+    // Get existing appointments for this date and doctor
+    const dateString = formatDateForInput(date);
+    const doctorId = appState.selectedDoctor.id;
+    const timeSlots = appState.selectedDoctor.schedule[dayNameEng] || [];
+    
+    if (timeSlots.length === 0) {
+        return '<div class="text-xs text-gray-600">Tidak praktik</div>';
+    }
+    
+    // Calculate total capacity and used slots across all time slots for this date
+    let totalUsedSlots = 0;
+    let totalCapacity = 0;
+    
+    timeSlots.forEach(timeSlot => {
+        const existingAppointments = mockData.appointments.filter(apt =>
+            apt.doctorId === doctorId &&
+            apt.date === dateString &&
+            apt.time === timeSlot &&
+            apt.status !== 'cancelled'
+        );
+        totalUsedSlots += existingAppointments.length;
+        totalCapacity += 20; // Max 20 patients per time slot
+    });
+    
+    const availableSlots = totalCapacity - totalUsedSlots;
+    const utilizationPercentage = (totalUsedSlots / totalCapacity) * 100;
+    
+    if (availableSlots <= 0) {
+        return '<div class="text-xs text-red-600">Penuh</div>';
+    } else if (utilizationPercentage >= 80) {
+        return '<div class="text-xs text-orange-600">Hampir Penuh</div>';
+    } else if (utilizationPercentage >= 50) {
+        return '<div class="text-xs text-blue-600">Tersedia</div>';
+    }
+    return '<div class="text-xs text-green-600">Banyak Tersedia</div>';
+}
+
+function loadMoreDates() {
+    const dateButtons = document.getElementById('dateButtons');
+    const today = new Date();
+    const additionalButtons = [];
+    
+    const indoToEng = {
+        minggu: 'sunday',
+        senin: 'monday',
+        selasa: 'tuesday',
+        rabu: 'wednesday',
+        kamis: 'thursday',
+        jumat: 'friday',
+        sabtu: 'saturday'
+    };
+    
+    // Generate remaining dates (15-30)
+    for (let i = 15; i <= 30; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const dayNameIndo = getDayName(date.getDay());
+        const dayNameEng = indoToEng[dayNameIndo];
+        
+        const hasSchedule = appState.selectedDoctor.schedule[dayNameEng];
+        
+        additionalButtons.push(`
             <button onclick="selectDate('${formatDateForInput(date)}')"
                     class="px-4 py-2 text-sm font-medium rounded-md border ${hasSchedule ? 'border-gray-300 text-gray-700 hover:bg-gray-50' : 'border-gray-200 text-gray-400 cursor-not-allowed'}"
                     ${!hasSchedule ? 'disabled' : ''}>
                 <div class="text-center">
                     <div class="font-medium text-capitalize">${dayNameIndo.charAt(0).toUpperCase() + dayNameIndo.slice(1)}</div>
                     <div class="text-xs">${formatDateDisplay(date)}</div>
+                    ${hasSchedule ? getAvailabilityInfo(date, dayNameEng) : ''}
                 </div>
             </button>
         `);
     }
-    dateButtons.innerHTML = buttons.join('');
+    
+    // Remove load more button and add additional dates
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.remove();
+    }
+    
+    dateButtons.insertAdjacentHTML('beforeend', additionalButtons.join(''));
 }
 
 function selectDate(dateString) {
@@ -727,14 +849,30 @@ function loadTimeSlots(dateString) {
         apt.date === dateString &&
         apt.status !== 'cancelled'
     );
+    
     timeSlotsContainer.innerHTML = timeSlots.map(time => {
-        const isBooked = existingAppointments.some(apt => apt.time === time);
+        const appointmentsForTimeSlot = existingAppointments.filter(apt => apt.time === time);
+        const bookedCount = appointmentsForTimeSlot.length;
+        const isFullyBooked = bookedCount >= 20; // Max 20 patients per schedule
+        const availableSlots = Math.max(0, 20 - bookedCount);
+        
+        let statusClass = 'border-gray-300 text-gray-700 hover:bg-gray-50';
+        let statusText = `${availableSlots} slot tersisa`;
+        
+        if (isFullyBooked) {
+            statusClass = 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed';
+            statusText = 'Penuh';
+        } else if (availableSlots <= 3) {
+            statusClass = 'border-orange-300 text-orange-700 hover:bg-orange-50';
+            statusText = `${availableSlots} slot tersisa`;
+        }
+        
         return `
-            <button onclick="${isBooked ? '' : `selectTime('${time}')`}"
-                    class="p-2 text-sm font-medium rounded-md border ${isBooked ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}"
-                    ${isBooked ? 'disabled' : ''}>
-                ${time}
-                ${isBooked ? '<div class="text-xs text-red-500">Sudah dipesan</div>' : ''}
+            <button onclick="${isFullyBooked ? '' : `selectTime('${time}')`}"
+                    class="p-3 text-sm font-medium rounded-md border ${statusClass}"
+                    ${isFullyBooked ? 'disabled' : ''}>
+                <div class="font-medium">${time}</div>
+                <div class="text-xs mt-1 ${isFullyBooked ? 'text-red-500' : availableSlots <= 3 ? 'text-orange-600' : 'text-green-600'}">${statusText}</div>
             </button>
         `;
     }).join('');
@@ -785,8 +923,27 @@ function confirmBooking(event) {
     event.preventDefault();
     const reason = document.getElementById('reasonForVisit').value; // Reason is now optional
 
-    // Generate queue number
-    const queueNumber = `Q${String(mockData.appointments.length + 1).padStart(3, '0')}`;
+    // Check capacity before booking
+    const doctorId = appState.selectedDoctor.id;
+    const dateString = appState.selectedDate;
+    const timeSlot = appState.selectedTime;
+    
+    const existingAppointments = mockData.appointments.filter(apt =>
+        apt.doctorId === doctorId &&
+        apt.date === dateString &&
+        apt.time === timeSlot &&
+        apt.status !== 'cancelled'
+    );
+    
+    // Maximum 20 patients per doctor per schedule
+    if (existingAppointments.length >= 20) {
+        showModal('Kapasitas Penuh', 'Maaf, kapasitas untuk jadwal ini sudah penuh (maksimal 20 pasien). Silakan pilih jadwal lain.', 
+                 [{ text: 'OK', class: 'btn-primary', action: 'closeModal()' }]);
+        return;
+    }
+
+    // Generate proper queue number based on appointment sequence for this doctor/date/time
+    const queueNumber = generateQueueNumber(doctorId, dateString, timeSlot);
 
     const newAppointmentData = {
         // id will be set based on whether it's a new booking or reschedule to avoid conflicts if we were to reuse IDs

@@ -109,7 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
             time: '09:00 - 12:00', 
             quota: 20, 
             registered: 15,
-            isActive: true
+            isActive: true,
+            weekNumber: getCurrentWeek(),
+            year: new Date().getFullYear()
         },
         { 
             id: 2, 
@@ -120,7 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
             time: '14:00 - 17:00', 
             quota: 15, 
             registered: 10,
-            isActive: true
+            isActive: true,
+            weekNumber: getCurrentWeek(),
+            year: new Date().getFullYear()
         },
         { 
             id: 3, 
@@ -131,7 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
             time: '10:00 - 13:00', 
             quota: 18, 
             registered: 5,
-            isActive: false
+            isActive: true,
+            weekNumber: getCurrentWeek(),
+            year: new Date().getFullYear()
         },
         { 
             id: 4, 
@@ -142,9 +148,58 @@ document.addEventListener('DOMContentLoaded', () => {
             time: '08:00 - 11:00', 
             quota: 12, 
             registered: 8,
-            isActive: true
+            isActive: true,
+            weekNumber: getCurrentWeek(),
+            year: new Date().getFullYear()
+        },
+        // Next week schedules
+        { 
+            id: 5, 
+            doctorId: 1,
+            doctorName: 'Dr. Ahmad Subarjo', 
+            polyclinic: 'Umum', 
+            day: 'Senin', 
+            time: '09:00 - 12:00', 
+            quota: 20, 
+            registered: 3,
+            isActive: true,
+            weekNumber: getCurrentWeek() + 1,
+            year: new Date().getFullYear()
+        },
+        { 
+            id: 6, 
+            doctorId: 1,
+            doctorName: 'Dr. Ahmad Subarjo', 
+            polyclinic: 'Umum', 
+            day: 'Rabu', 
+            time: '14:00 - 17:00', 
+            quota: 15, 
+            registered: 0,
+            isActive: true,
+            weekNumber: getCurrentWeek() + 1,
+            year: new Date().getFullYear()
         }
     ];    // --- Utility Functions ---
+    function getCurrentWeek() {
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const pastDaysOfYear = (now - startOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+    }
+
+    function getWeekDates(weekNumber, year) {
+        const jan1 = new Date(year, 0, 1);
+        const startOfWeek = new Date(jan1.getTime() + ((weekNumber - 1) * 7 - jan1.getDay()) * 86400000);
+        
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(startOfWeek);
+            date.setDate(startOfWeek.getDate() + i);
+            dates.push(date);
+        }
+        return dates;
+    }
+
     function formatDate(dateString) {
         const options = { 
             year: 'numeric', 
@@ -168,6 +223,29 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'Dibatalkan': return 'bg-red-100 text-red-800';
             default: return 'bg-gray-100 text-gray-800';
         }
+    }
+
+    function getNextQueueNumber(scheduleId, date) {
+        const existingAppointments = appointments.filter(app => 
+            app.scheduleId === scheduleId && 
+            app.date === date && 
+            app.status !== 'Dibatalkan'
+        );
+        return existingAppointments.length + 1;
+    }
+
+    function calculateEstimatedTime(scheduleTime, queueNumber) {
+        const [startTime] = scheduleTime.split(' - ');
+        const [hours, minutes] = startTime.split(':').map(Number);
+        
+        // Estimate 15 minutes per patient
+        const estimatedMinutes = (queueNumber - 1) * 15;
+        const totalMinutes = hours * 60 + minutes + estimatedMinutes;
+        
+        const estimatedHours = Math.floor(totalMinutes / 60);
+        const estimatedMins = totalMinutes % 60;
+        
+        return `${estimatedHours.toString().padStart(2, '0')}:${estimatedMins.toString().padStart(2, '0')}`;
     }
 
     // --- Statistics Functions ---
@@ -255,29 +333,62 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             appointmentsList.insertAdjacentHTML('beforeend', appointmentCard);
         });
-    }
+    }    // Current week for schedule display
+    let currentWeekNumber = getCurrentWeek();
+    let currentYear = new Date().getFullYear();
 
     function renderSchedulesList() {
         if (!schedulesList) return;
         
-        // Filter schedules for current doctor
-        const doctorSched = doctorSchedules.filter(schedule => schedule.doctorId === currentDoctor.id);
+        // Filter schedules for current doctor and selected week
+        const doctorSched = doctorSchedules.filter(schedule => 
+            schedule.doctorId === currentDoctor.id && 
+            schedule.weekNumber === currentWeekNumber &&
+            schedule.year === currentYear
+        );
         
         schedulesList.innerHTML = '';
         
+        // Add week navigation
+        const weekNavigation = `
+            <div class="flex justify-between items-center mb-4 p-3 bg-gray-50 rounded-lg">
+                <button onclick="changeWeek(-1)" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm">
+                    ← Minggu Sebelumnya
+                </button>
+                <div class="text-center">
+                    <h3 class="font-medium text-gray-900">Minggu ke-${currentWeekNumber} Tahun ${currentYear}</h3>
+                    <p class="text-sm text-gray-600">${getWeekDateRange(currentWeekNumber, currentYear)}</p>
+                </div>
+                <button onclick="changeWeek(1)" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm">
+                    Minggu Berikutnya →
+                </button>
+            </div>
+        `;
+        schedulesList.insertAdjacentHTML('beforeend', weekNavigation);
+        
         if (doctorSched.length === 0) {
-            schedulesList.innerHTML = `
+            schedulesList.insertAdjacentHTML('beforeend', `
                 <div class="text-center py-8 text-gray-500">
                     <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <p>Belum ada jadwal praktek</p>
+                    <p>Belum ada jadwal praktek minggu ini</p>
+                    <button onclick="addNewSchedule()" class="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm">
+                        Tambah Jadwal Minggu Ini
+                    </button>
                 </div>
-            `;
+            `);
             return;
         }
         
+        // Sort schedules by day order
+        const dayOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+        doctorSched.sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day));
+        
         doctorSched.forEach(schedule => {
+            const availableSlots = schedule.quota - schedule.registered;
+            const percentageFull = (schedule.registered / schedule.quota * 100);
+            
             const scheduleCard = `
                 <div class="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white ${!schedule.isActive ? 'opacity-60' : ''}">
                     <div class="flex justify-between items-start mb-3">
@@ -285,11 +396,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h4 class="font-semibold text-gray-900">${schedule.day}</h4>
                             <p class="text-sm text-gray-600">${schedule.time}</p>
                             <p class="text-sm text-gray-600">Poliklinik: ${schedule.polyclinic}</p>
+                            <p class="text-sm text-gray-500">Slot tersisa: ${availableSlots}</p>
                         </div>
                         <div class="text-right">
                             <span class="px-2 py-1 text-xs font-medium rounded-full ${schedule.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
                                 ${schedule.isActive ? 'Aktif' : 'Non-aktif'}
                             </span>
+                            ${percentageFull >= 90 ? '<span class="block mt-1 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Hampir Penuh</span>' : ''}
+                            ${percentageFull === 100 ? '<span class="block mt-1 px-2 py-1 text-xs font-medium rounded-full bg-red-200 text-red-900">Penuh</span>' : ''}
                         </div>
                     </div>
                     <div class="mb-3">
@@ -298,10 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="font-medium">${schedule.registered}/${schedule.quota}</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                            <div class="bg-blue-600 h-2 rounded-full" style="width: ${(schedule.registered / schedule.quota * 100)}%"></div>
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: ${percentageFull}%"></div>
                         </div>
                     </div>
-                    <div class="flex space-x-2">
+                    <div class="flex space-x-2 flex-wrap gap-1">
+                        <button onclick="viewScheduleDetails(${schedule.id})" class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
+                            Detail Pasien
+                        </button>
                         <button onclick="editSchedule(${schedule.id})" class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition-colors">
                             Edit
                         </button>
@@ -313,7 +430,132 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             schedulesList.insertAdjacentHTML('beforeend', scheduleCard);
         });
-    }    // --- Modal Functions ---
+    }
+
+    function getWeekDateRange(weekNumber, year) {
+        const dates = getWeekDates(weekNumber, year);
+        const startDate = dates[0].toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        const endDate = dates[6].toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        return `${startDate} - ${endDate}`;
+    }
+
+    window.changeWeek = (direction) => {
+        currentWeekNumber += direction;
+        
+        // Handle year transition
+        if (currentWeekNumber < 1) {
+            currentWeekNumber = 52;
+            currentYear--;
+        } else if (currentWeekNumber > 52) {
+            currentWeekNumber = 1;
+            currentYear++;
+        }
+        
+        renderSchedulesList();
+        updateStatistics(); // Update stats for new week
+    };
+
+    window.addNewSchedule = () => {
+        const content = `
+            <form id="addScheduleForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Hari</label>
+                    <select id="scheduleDay" class="w-full p-2 border border-gray-300 rounded-md" required>
+                        <option value="">Pilih Hari</option>
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option>
+                        <option value="Minggu">Minggu</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
+                        <input type="time" id="scheduleStartTime" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
+                        <input type="time" id="scheduleEndTime" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kuota Pasien (Maksimal 20)</label>
+                    <input type="number" id="scheduleQuota" min="1" max="20" class="w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Poliklinik</label>
+                    <input type="text" id="schedulePolyclinic" value="${currentDoctor.polyclinic}" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100" readonly>
+                </div>
+            </form>
+        `;
+        
+        const footerButtons = `
+            <button type="button" onclick="saveNewSchedule()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+                Simpan Jadwal
+            </button>
+        `;
+        
+        openDoctorModal('Tambah Jadwal Baru', content, footerButtons);
+    };
+
+    window.saveNewSchedule = () => {
+        const form = document.getElementById('addScheduleForm');
+        const formData = new FormData(form);
+        
+        const day = document.getElementById('scheduleDay').value;
+        const startTime = document.getElementById('scheduleStartTime').value;
+        const endTime = document.getElementById('scheduleEndTime').value;
+        const quota = parseInt(document.getElementById('scheduleQuota').value);
+        const polyclinic = document.getElementById('schedulePolyclinic').value;
+        
+        if (!day || !startTime || !endTime || !quota) {
+            alert('Mohon lengkapi semua field');
+            return;
+        }
+        
+        if (quota > 20) {
+            alert('Kuota maksimal adalah 20 pasien');
+            return;
+        }
+        
+        // Check for duplicate schedule
+        const existingSchedule = doctorSchedules.find(schedule => 
+            schedule.doctorId === currentDoctor.id &&
+            schedule.day === day &&
+            schedule.weekNumber === currentWeekNumber &&
+            schedule.year === currentYear &&
+            schedule.isActive
+        );
+        
+        if (existingSchedule) {
+            alert('Jadwal untuk hari tersebut sudah ada di minggu ini');
+            return;
+        }
+        
+        const newSchedule = {
+            id: Date.now(),
+            doctorId: currentDoctor.id,
+            doctorName: currentDoctor.name,
+            polyclinic: polyclinic,
+            day: day,
+            time: `${startTime} - ${endTime}`,
+            quota: quota,
+            registered: 0,
+            isActive: true,
+            weekNumber: currentWeekNumber,
+            year: currentYear
+        };
+        
+        doctorSchedules.push(newSchedule);
+        renderSchedulesList();
+        updateStatistics();
+        closeDoctorModal();
+        
+        alert('Jadwal berhasil ditambahkan');
+    };// --- Modal Functions ---
     window.openDoctorModal = (title, content, footerButtons = '') => {
         if (!doctorModal || !doctorModalTitle || !doctorModalBody || !doctorModalFooter) return;
         doctorModalTitle.textContent = title;
@@ -410,182 +652,184 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`Janji temu ${appointment.patientName} berhasil dibatalkan.`);
     };
     // --- Schedule Actions ---
-    window.editSchedule = (scheduleId) => {
-        const schedule = doctorSchedules.find(s => s.id === scheduleId);
+    window.viewScheduleDetails = (scheduleId) => {
+        const schedule = doctorSchedules.find(sch => sch.id === scheduleId);
         if (!schedule) return;
         
-        const formHtml = `
+        // Get appointments for this schedule
+        const scheduleAppointments = appointments.filter(app => 
+            app.doctorId === currentDoctor.id && 
+            app.polyclinic === schedule.polyclinic &&
+            // Check if appointment day matches schedule day (simple check for demo)
+            new Date(app.date).toLocaleDateString('id-ID', { weekday: 'long' }) === schedule.day
+        );
+        
+        let appointmentsList = '';
+        if (scheduleAppointments.length === 0) {
+            appointmentsList = '<p class="text-gray-500 text-center py-4">Belum ada pasien terdaftar</p>';
+        } else {
+            appointmentsList = scheduleAppointments.map((app, index) => `
+                <div class="border-b pb-3 mb-3 last:border-b-0">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h5 class="font-medium">${app.patientName}</h5>
+                            <p class="text-sm text-gray-600">Antrian: ${index + 1}</p>
+                            <p class="text-sm text-gray-600">Estimasi: ${calculateEstimatedTime(schedule.time, index + 1)}</p>
+                            <p class="text-sm text-gray-600">Keluhan: ${app.complaint}</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(app.status)}">
+                            ${app.status}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        const detailsHtml = `
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-2">Informasi Jadwal</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Hari:</span>
+                            <span class="ml-2 font-medium">${schedule.day}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Waktu:</span>
+                            <span class="ml-2 font-medium">${schedule.time}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Poliklinik:</span>
+                            <span class="ml-2 font-medium">${schedule.polyclinic}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Status:</span>
+                            <span class="ml-2 font-medium">${schedule.isActive ? 'Aktif' : 'Non-aktif'}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Kuota:</span>
+                            <span class="ml-2 font-medium">${schedule.quota} pasien</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Terdaftar:</span>
+                            <span class="ml-2 font-medium">${schedule.registered} pasien</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-3">Daftar Pasien (${scheduleAppointments.length})</h4>
+                    <div class="max-h-64 overflow-y-auto">
+                        ${appointmentsList}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        openDoctorModal(`Detail Jadwal - ${schedule.day}`, detailsHtml);
+    };
+
+    window.editSchedule = (scheduleId) => {
+        const schedule = doctorSchedules.find(sch => sch.id === scheduleId);
+        if (!schedule) return;
+        
+        const [startTime, endTime] = schedule.time.split(' - ');
+        
+        const content = `
             <form id="editScheduleForm" class="space-y-4">
-                <input type="hidden" id="editScheduleId" value="${schedule.id}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Hari</label>
+                    <select id="editScheduleDay" class="w-full p-2 border border-gray-300 rounded-md" required>
+                        <option value="Senin" ${schedule.day === 'Senin' ? 'selected' : ''}>Senin</option>
+                        <option value="Selasa" ${schedule.day === 'Selasa' ? 'selected' : ''}>Selasa</option>
+                        <option value="Rabu" ${schedule.day === 'Rabu' ? 'selected' : ''}>Rabu</option>
+                        <option value="Kamis" ${schedule.day === 'Kamis' ? 'selected' : ''}>Kamis</option>
+                        <option value="Jumat" ${schedule.day === 'Jumat' ? 'selected' : ''}>Jumat</option>
+                        <option value="Sabtu" ${schedule.day === 'Sabtu' ? 'selected' : ''}>Sabtu</option>
+                        <option value="Minggu" ${schedule.day === 'Minggu' ? 'selected' : ''}>Minggu</option>
+                    </select>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Hari:</label>
-                        <p class="mt-1 text-sm text-gray-900 p-2 bg-gray-50 rounded">${schedule.day}</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
+                        <input type="time" id="editScheduleStartTime" value="${startTime}" class="w-full p-2 border border-gray-300 rounded-md" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Poliklinik:</label>
-                        <p class="mt-1 text-sm text-gray-900 p-2 bg-gray-50 rounded">${schedule.polyclinic}</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
+                        <input type="time" id="editScheduleEndTime" value="${endTime}" class="w-full p-2 border border-gray-300 rounded-md" required>
                     </div>
                 </div>
                 <div>
-                    <label for="editScheduleTime" class="block text-sm font-medium text-gray-700">Waktu Praktek:</label>
-                    <input type="text" id="editScheduleTime" value="${schedule.time}" required 
-                           placeholder="Contoh: 09:00 - 12:00"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kuota Pasien (Maksimal 20)</label>
+                    <input type="number" id="editScheduleQuota" value="${schedule.quota}" min="${schedule.registered}" max="20" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    <p class="text-xs text-gray-500 mt-1">*Kuota tidak dapat dikurangi di bawah jumlah pasien yang sudah terdaftar (${schedule.registered})</p>
                 </div>
                 <div>
-                    <label for="editScheduleQuota" class="block text-sm font-medium text-gray-700">Kuota Pasien:</label>
-                    <input type="number" id="editScheduleQuota" value="${schedule.quota}" required min="1" max="50"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="editScheduleRegistered" class="block text-sm font-medium text-gray-700">Pasien Terdaftar:</label>
-                    <input type="number" id="editScheduleRegistered" value="${schedule.registered}" required min="0"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Poliklinik</label>
+                    <input type="text" value="${schedule.polyclinic}" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100" readonly>
                 </div>
             </form>
         `;
         
-        const footerButtons = '<button type="button" onclick="saveScheduleChanges()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mr-2">Simpan Perubahan</button>';
-        window.openDoctorModal('Edit Jadwal Praktek - ' + schedule.day, formHtml, footerButtons);
+        const footerButtons = `
+            <button type="button" onclick="updateSchedule(${scheduleId})" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                Simpan Perubahan
+            </button>
+        `;
+        
+        openDoctorModal('Edit Jadwal', content, footerButtons);
     };
 
-    window.saveScheduleChanges = () => {
-        const form = document.getElementById('editScheduleForm');
-        if (!form || !form.checkValidity()) {
-            form?.reportValidity();
+    window.updateSchedule = (scheduleId) => {
+        const schedule = doctorSchedules.find(sch => sch.id === scheduleId);
+        if (!schedule) return;
+        
+        const day = document.getElementById('editScheduleDay').value;
+        const startTime = document.getElementById('editScheduleStartTime').value;
+        const endTime = document.getElementById('editScheduleEndTime').value;
+        const quota = parseInt(document.getElementById('editScheduleQuota').value);
+        
+        if (!day || !startTime || !endTime || !quota) {
+            alert('Mohon lengkapi semua field');
             return;
         }
-
-        const id = parseInt(document.getElementById('editScheduleId').value);
-        const updatedTime = document.getElementById('editScheduleTime').value;
-        const updatedQuota = parseInt(document.getElementById('editScheduleQuota').value);
-        const updatedRegistered = parseInt(document.getElementById('editScheduleRegistered').value);
-
-        if (updatedRegistered > updatedQuota) {
-            alert('Jumlah pasien terdaftar tidak boleh melebihi kuota.');
+        
+        if (quota > 20) {
+            alert('Kuota maksimal adalah 20 pasien');
             return;
         }
-
-        doctorSchedules = doctorSchedules.map(s => {
-            if (s.id === id) {
-                return { ...s, time: updatedTime, quota: updatedQuota, registered: updatedRegistered };
-            }
-            return s;
-        });
+        
+        if (quota < schedule.registered) {
+            alert(`Kuota tidak dapat dikurangi di bawah ${schedule.registered} (jumlah pasien yang sudah terdaftar)`);
+            return;
+        }
+        
+        // Update schedule
+        schedule.day = day;
+        schedule.time = `${startTime} - ${endTime}`;
+        schedule.quota = quota;
         
         renderSchedulesList();
         updateStatistics();
-        window.closeDoctorModal();
-        alert('Jadwal praktek berhasil diperbarui!');
+        closeDoctorModal();
+        
+        alert('Jadwal berhasil diperbarui');
     };
 
     window.toggleScheduleStatus = (scheduleId) => {
-        const schedule = doctorSchedules.find(s => s.id === scheduleId);
+        const schedule = doctorSchedules.find(sch => sch.id === scheduleId);
         if (!schedule) return;
         
-        const action = schedule.isActive ? 'non-aktifkan' : 'aktifkan';
-        const confirmMessage = `Apakah Anda yakin ingin ${action} jadwal praktek hari ${schedule.day}?`;
-        
-        if (confirm(confirmMessage)) {
-            doctorSchedules = doctorSchedules.map(s => 
-                s.id === scheduleId ? { ...s, isActive: !s.isActive } : s
-            );
-            
+        const action = schedule.isActive ? 'menonaktifkan' : 'mengaktifkan';
+        if (confirm(`Apakah Anda yakin ingin ${action} jadwal ini?`)) {
+            schedule.isActive = !schedule.isActive;
             renderSchedulesList();
             updateStatistics();
-            alert(`Jadwal praktek hari ${schedule.day} berhasil di${action}.`);
+            alert(`Jadwal berhasil ${schedule.isActive ? 'diaktifkan' : 'dinonaktifkan'}`);
         }
     };
 
-    window.addNewSchedule = () => {
-        const formHtml = `
-            <form id="addScheduleForm" class="space-y-4">
-                <div>
-                    <label for="newScheduleDay" class="block text-sm font-medium text-gray-700">Hari:</label>
-                    <select id="newScheduleDay" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                        <option value="">Pilih Hari</option>
-                        <option value="Senin">Senin</option>
-                        <option value="Selasa">Selasa</option>
-                        <option value="Rabu">Rabu</option>
-                        <option value="Kamis">Kamis</option>
-                        <option value="Jumat">Jumat</option>
-                        <option value="Sabtu">Sabtu</option>
-                        <option value="Minggu">Minggu</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="newScheduleTime" class="block text-sm font-medium text-gray-700">Waktu Praktek:</label>
-                    <input type="text" id="newScheduleTime" required 
-                           placeholder="Contoh: 09:00 - 12:00"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="newScheduleQuota" class="block text-sm font-medium text-gray-700">Kuota Pasien:</label>
-                    <input type="number" id="newScheduleQuota" required min="1" max="50" value="20"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="newSchedulePolyclinic" class="block text-sm font-medium text-gray-700">Poliklinik:</label>
-                    <select id="newSchedulePolyclinic" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                        <option value="Umum">Umum</option>
-                        <option value="Anak">Anak</option>
-                        <option value="Gigi">Gigi</option>
-                        <option value="Mata">Mata</option>
-                        <option value="THT">THT</option>
-                        <option value="Kulit">Kulit</option>
-                        <option value="Penyakit Dalam">Penyakit Dalam</option>
-                        <option value="Kardiologi">Kardiologi</option>
-                        <option value="Neurologi">Neurologi</option>
-                    </select>
-                </div>
-            </form>
-        `;
-        
-        const footerButtons = '<button type="button" onclick="saveNewSchedule()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mr-2">Tambah Jadwal</button>';
-        window.openDoctorModal('Tambah Jadwal Praktek Baru', formHtml, footerButtons);
-    };
-
-    window.saveNewSchedule = () => {
-        const form = document.getElementById('addScheduleForm');
-        if (!form || !form.checkValidity()) {
-            form?.reportValidity();
-            return;
-        }
-
-        const newDay = document.getElementById('newScheduleDay').value;
-        const newTime = document.getElementById('newScheduleTime').value;
-        const newQuota = parseInt(document.getElementById('newScheduleQuota').value);
-        const newPolyclinic = document.getElementById('newSchedulePolyclinic').value;
-
-        // Check if schedule for this day already exists
-        const existingSchedule = doctorSchedules.find(s => 
-            s.doctorId === currentDoctor.id && s.day === newDay
-        );
-        
-        if (existingSchedule) {
-            alert(`Jadwal untuk hari ${newDay} sudah ada. Silakan edit jadwal yang sudah ada.`);
-            return;
-        }
-
-        const newSchedule = {
-            id: Math.max(...doctorSchedules.map(s => s.id)) + 1,
-            doctorId: currentDoctor.id,
-            doctorName: currentDoctor.name,
-            polyclinic: newPolyclinic,
-            day: newDay,
-            time: newTime,
-            quota: newQuota,
-            registered: 0,
-            isActive: true
-        };
-
-        doctorSchedules.push(newSchedule);
-        renderSchedulesList();
-        updateStatistics();
-        window.closeDoctorModal();
-        alert(`Jadwal praktek hari ${newDay} berhasil ditambahkan!`);
-    };    // --- Event Listeners ---
+    // --- Event Listeners ---
     if (filterTodayBtn) {
         filterTodayBtn.addEventListener('click', () => {
             currentFilter = 'today';
