@@ -97,10 +97,23 @@
                         </div>
                         <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
                             <button onclick="generateVisitReport()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
-                                Generate Laporan
+                                📊 Generate Laporan
+                            </button>
+                            <button onclick="generatePolyclinicServiceReport()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
+                                🏥 Rekap Per Poli
+                            </button>                            <button onclick="generateScheduleServiceReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
+                                🗓️ Rekap Per Jadwal
                             </button>
                             <button onclick="exportVisitReport()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
-                                Export Excel
+                                📄 Export Excel
+                            </button>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                            <button onclick="generateRandomData()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
+                                🎲 Generate Mock Data
+                            </button>
+                            <button onclick="resetMockData()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm w-full sm:w-auto whitespace-nowrap">
+                                🔄 Reset Data
                             </button>
                         </div>
                     </div>
@@ -125,9 +138,54 @@
                     </div>
                 </div>                <!-- Report Content -->
                 <div id="reportContent" class="space-y-4 md:space-y-6">
+                    <!-- Quick Stats Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-600 text-sm font-medium">Total Poli Aktif</p>
+                                    <p class="text-2xl font-bold text-blue-800" id="totalActivePolyclinics">0</p>
+                                </div>
+                                <div class="text-blue-500">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-600 text-sm font-medium">Jadwal Hari Ini</p>
+                                    <p class="text-2xl font-bold text-green-800" id="todaySchedules">0</p>
+                                </div>
+                                <div class="text-green-500">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-600 text-sm font-medium">Tingkat Utilisasi</p>
+                                    <p class="text-2xl font-bold text-purple-800" id="averageUtilization">0%</p>
+                                </div>
+                                <div class="text-purple-500">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- By Polyclinic Report -->
                     <div class="bg-gray-50 p-3 md:p-4 rounded-lg">
-                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">Kunjungan per Poliklinik</h3>
+                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">📊 Kunjungan per Poliklinik</h3>
                         <div id="polyclinicReport" class="space-y-2">
                             <!-- Polyclinic data will be loaded here -->
                         </div>
@@ -135,7 +193,7 @@
 
                     <!-- By Doctor Report -->
                     <div class="bg-gray-50 p-3 md:p-4 rounded-lg">
-                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">Kunjungan per Dokter</h3>
+                        <h3 class="text-sm md:text-md font-semibold text-gray-800 mb-3">👨‍⚕️ Kunjungan per Dokter</h3>
                         <div id="doctorReport" class="space-y-2">
                             <!-- Doctor data will be loaded here -->
                         </div>
