@@ -892,56 +892,199 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.innerHTML = `
                     <span class="text-sm text-gray-600">${doctor}</span>
                     <span class="font-semibold text-gray-800">${count}</span>
-                `;
-                doctorReport.appendChild(item);
+                `;            doctorReport.appendChild(item);
             });
     }
 
     function displayDetailedVisitList(visits) {
+        // Try both visitList and visitTableBody elements
         const visitList = document.getElementById('visitList');
-        if (!visitList) return;
+        const visitTableBody = document.getElementById('visitTableBody');
         
-        visitList.innerHTML = '';
+        if (!visitList && !visitTableBody) return;
         
-        if (visits.length === 0) {
-            visitList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada kunjungan untuk periode yang dipilih</p>';
-            return;
+        if (visitTableBody) {
+            // Clear table body
+            visitTableBody.innerHTML = '';
+            
+            if (visits.length === 0) {
+                visitTableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada kunjungan untuk periode yang dipilih</td></tr>';
+                return;
+            }
+            
+            // Sort visits by date and time
+            const sortedVisits = visits.sort((a, b) => {
+                const dateCompare = new Date(b.visitDate) - new Date(a.visitDate);
+                if (dateCompare === 0) {
+                    return b.visitTime.localeCompare(a.visitTime);
+                }
+                return dateCompare;
+            });
+            
+            sortedVisits.forEach(visit => {
+                const statusClass = visit.status === 'Selesai' ? 'bg-green-100 text-green-800' :
+                                  visit.status === 'Sedang Dilayani' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-yellow-100 text-yellow-800';
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${new Date(visit.visitDate).toLocaleDateString('id-ID')}</td>
+                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.visitTime}</td>
+                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.patientName}</td>
+                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.doctorName}</td>
+                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.polyclinic}</td>
+                    <td class="px-2 md:px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
+                            ${visit.status}
+                        </span>
+                    </td>
+                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.queueNumber}</td>
+                `;
+                visitTableBody.appendChild(row);
+            });
+        } else if (visitList) {
+            // Handle card layout (fallback)
+            visitList.innerHTML = '';
+            
+            if (visits.length === 0) {
+                visitList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada kunjungan untuk periode yang dipilih</p>';
+                return;
+            }
+            
+            // Sort visits by date and time
+            const sortedVisits = visits.sort((a, b) => {
+                const dateCompare = new Date(b.visitDate) - new Date(a.visitDate);
+                if (dateCompare === 0) {
+                    return b.visitTime.localeCompare(a.visitTime);
+                }
+                return dateCompare;
+            });
+            
+            sortedVisits.forEach(visit => {
+                const statusClass = visit.status === 'Selesai' ? 'bg-green-100 text-green-800' :
+                                  visit.status === 'Sedang Dilayani' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-yellow-100 text-yellow-800';
+                
+                const visitCard = document.createElement('div');
+                visitCard.className = 'bg-white border rounded-lg p-3 mb-2';
+                visitCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-medium text-gray-900">${visit.patientName}</h4>
+                            <p class="text-sm text-gray-600">${visit.doctorName} - ${visit.polyclinic}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
+                            ${visit.status}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>${new Date(visit.visitDate).toLocaleDateString('id-ID')} • ${visit.visitTime}</span>
+                        <span>No. Antrian: ${visit.queueNumber}</span>
+                    </div>
+                `;
+                visitList.appendChild(visitCard);
+            });
+        }
+    }
+
+    // Mock Data Randomizer for Testing
+    function generateRandomMockData() {
+        const doctorNames = [
+            'Dr. Ahmad Subarjo', 'Dr. Siti Aminah', 'Dr. Budi Prasetyo', 
+            'Dr. Sarah Johnson', 'Dr. Michael Chen', 'Dr. Emily Rodriguez',
+            'Dr. Indira Sari', 'Dr. Rahman Hakim', 'Dr. Lisa Wijaya',
+            'Dr. Bambang Sutrisno', 'Dr. Maya Kusuma', 'Dr. Andi Pratama'
+        ];
+        
+        const polyclinics = ['Umum', 'Anak', 'Gigi', 'Kardiologi', 'Mata', 'THT', 'Kulit'];
+        
+        const patientNames = [
+            'Budi Santoso', 'Ani Lestari', 'Sari Dewi', 'Ahmad Fauzi', 'Maya Sari',
+            'Rina Putri', 'Dedi Kurniawan', 'Lina Wati', 'Joko Widodo', 'Sri Mulyani',
+            'Hendra Gunawan', 'Dewi Sartika', 'Eko Prasetyo', 'Fitri Handayani',
+            'Agus Salim', 'Ratna Sari', 'Iwan Setiawan', 'Nurul Hidayah'
+        ];
+        
+        const statuses = ['Selesai', 'Sedang Dilayani', 'Menunggu'];
+        const timeSlots = [
+            '08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30', '09:45',
+            '10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45',
+            '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', '14:30', '14:45',
+            '15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45'
+        ];
+        
+        // Generate random visits for the last 30 days
+        const newVisits = [];
+        const today = new Date();
+        
+        for (let i = 0; i < 60; i++) { // Generate 60 random visits
+            const visitDate = new Date(today);
+            visitDate.setDate(today.getDate() - Math.floor(Math.random() * 30)); // Last 30 days
+            
+            const doctorName = doctorNames[Math.floor(Math.random() * doctorNames.length)];
+            const polyclinic = polyclinics[Math.floor(Math.random() * polyclinics.length)];
+            const patientName = patientNames[Math.floor(Math.random() * patientNames.length)];
+            const status = statuses[Math.floor(Math.random() * statuses.length)];
+            const visitTime = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+            
+            // Generate queue number based on polyclinic
+            const queuePrefix = polyclinic === 'Umum' ? 'A' : 
+                               polyclinic === 'Anak' ? 'B' : 
+                               polyclinic === 'Gigi' ? 'C' : 
+                               polyclinic === 'Kardiologi' ? 'D' : 
+                               polyclinic === 'Mata' ? 'E' : 
+                               polyclinic === 'THT' ? 'F' : 'G';
+            
+            const queueNumber = queuePrefix + String(Math.floor(Math.random() * 50) + 1).padStart(3, '0');
+            
+            newVisits.push({
+                id: patientVisits.length + i + 1,
+                patientId: Math.floor(Math.random() * 20) + 1,
+                patientName: patientName,
+                doctorId: Math.floor(Math.random() * 12) + 1,
+                doctorName: doctorName,
+                polyclinic: polyclinic,
+                visitDate: visitDate.toISOString().split('T')[0],
+                visitTime: visitTime,
+                status: status,
+                queueNumber: queueNumber,
+                scheduleId: Math.floor(Math.random() * 9) + 1
+            });
         }
         
-        // Sort visits by date and time
-        const sortedVisits = visits.sort((a, b) => {
-            const dateCompare = new Date(b.visitDate) - new Date(a.visitDate);
-            if (dateCompare === 0) {
-                return b.visitTime.localeCompare(a.visitTime);
-            }
-            return dateCompare;
-        });
+        // Add new visits to existing data
+        patientVisits.push(...newVisits);
         
-        sortedVisits.forEach(visit => {
-            const statusClass = visit.status === 'Selesai' ? 'bg-green-100 text-green-800' :
-                              visit.status === 'Sedang Dilayani' ? 'bg-blue-100 text-blue-800' :
-                              'bg-yellow-100 text-yellow-800';
-            
-            const visitCard = document.createElement('div');
-            visitCard.className = 'bg-white border rounded-lg p-3 mb-2';
-            visitCard.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h4 class="font-medium text-gray-900">${visit.patientName}</h4>
-                        <p class="text-sm text-gray-600">${visit.doctorName} - ${visit.polyclinic}</p>
-                    </div>
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
-                        ${visit.status}
-                    </span>
-                </div>
-                <div class="flex justify-between items-center text-sm text-gray-500">
-                    <span>${new Date(visit.visitDate).toLocaleDateString('id-ID')} • ${visit.visitTime}</span>
-                    <span>No. Antrian: ${visit.queueNumber}</span>
-                </div>
-            `;
-            visitList.appendChild(visitCard);
-        });
+        // Sort by date (newest first)
+        patientVisits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
+        
+        console.log(`Generated ${newVisits.length} additional mock visits. Total: ${patientVisits.length}`);
+        
+        // Update statistics after generating new data
+        updateStatistics();
+        
+        return newVisits.length;
     }
+
+    // Function to reset mock data
+    function resetMockData() {
+        // Reset to original 25 visits
+        patientVisits.splice(25); // Keep only first 25 items
+        updateStatistics();
+        console.log('Mock data reset to original 25 visits');
+    }
+
+    // Add buttons for mock data management
+    window.generateRandomData = () => {
+        const generated = generateRandomMockData();
+        alert(`Generated ${generated} additional mock visits for testing!`);
+    };
+
+    window.resetMockData = () => {
+        resetMockData();
+        alert('Mock data has been reset to original state!');
+    };
 
     // Initialize the admin panel when DOM is loaded
     renderPatientList();
