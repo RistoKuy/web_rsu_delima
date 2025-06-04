@@ -38,6 +38,16 @@ function setUserType(type) {
                 passwordInput.placeholder = 'Masukkan kata sandi Anda';
         }
     }
+    
+    // Control signup link visibility - only show for patients
+    const signupLink = document.getElementById('signupLink');
+    if (signupLink) {
+        if (type === 'patient') {
+            signupLink.style.display = 'block';
+        } else {
+            signupLink.style.display = 'none';
+        }
+    }
 }
 
 // Mock Data
