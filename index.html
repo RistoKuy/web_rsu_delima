@@ -50,7 +50,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .hero-bg {
-            background-image: linear-gradient(to right, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9)), url('https://placehold.co/1200x600/3b82f6/ffffff?text=Ruang+Tunggu+RSU+Delima');
+            background-image: linear-gradient(to right, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9)), url('assets/room_bg.png');
             background-size: cover;
             background-position: center;
         }
@@ -105,8 +105,10 @@
     <section id="beranda" class="hero-bg text-white py-20 md:py-32">        <div class="container mx-auto px-6 text-center">
             <h1 class="text-4xl md:text-6xl font-bold mb-4 leading-tight">Selamat Datang di RSU Delima</h1>
             <p class="text-lg md:text-xl mb-8 text-blue-100">Kesehatan Anda adalah Prioritas Utama Kami. Menyediakan layanan medis terbaik dengan sepenuh hati.</p>
-            <a href="appoint.html" class="bg-secondary-500 hover:bg-secondary-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 transform hover:scale-105">Buat Janji Temu Sekarang</a>
-            <a href="#layanan" class="ml-4 border-2 border-white hover:bg-white hover:text-primary-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">Lihat Layanan Kami</a>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="appoint.html" class="w-full sm:w-auto bg-secondary-500 hover:bg-secondary-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 transform hover:scale-105 text-center">Buat Janji Temu Sekarang</a>
+                <a href="#layanan" class="w-full sm:w-auto border-2 border-white hover:bg-white hover:text-primary-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 text-center">Lihat Layanan Kami</a>
+            </div>
         </div>
     </section>
 
@@ -173,7 +175,7 @@
         <div class="container mx-auto px-6">
             <div class="flex flex-col md:flex-row items-center">
                 <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12">
-                    <img src="https://placehold.co/600x400/22c55e/ffffff?text=Gedung+RSU+Delima" alt="Gedung RSU Delima" class="rounded-lg shadow-xl w-full">
+                    <img src="assets/hero_bg.png" alt="Gedung RSU Delima" class="rounded-lg shadow-xl w-full">
                 </div>
                 <div class="md:w-1/2">
                     <h2 class="text-3xl font-bold text-primary-700 mb-4">Tentang RSU Delima</h2>
