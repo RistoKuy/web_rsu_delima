@@ -22,19 +22,18 @@ function setUserType(type) {
     // Update login form placeholder text based on user type
     const emailInput = document.getElementById('loginEmail');
     const passwordInput = document.getElementById('loginPassword');
-    
-    if (emailInput && passwordInput) {
+      if (emailInput && passwordInput) {
         switch(type) {
             case 'admin':
-                emailInput.placeholder = 'Masukkan email admin';
+                emailInput.placeholder = 'Masukkan email atau nama pengguna admin';
                 passwordInput.placeholder = 'Masukkan kata sandi admin';
                 break;
             case 'doctor':
-                emailInput.placeholder = 'Masukkan email dokter';
+                emailInput.placeholder = 'Masukkan email atau nama pengguna dokter';
                 passwordInput.placeholder = 'Masukkan kata sandi dokter';
                 break;
             default: // patient
-                emailInput.placeholder = 'Masukkan email Anda';
+                emailInput.placeholder = 'Masukkan email atau nama pengguna';
                 passwordInput.placeholder = 'Masukkan kata sandi Anda';
         }
     }
@@ -51,10 +50,10 @@ function setUserType(type) {
 }
 
 // Mock Data
-let mockData = {
-    users: [
-        {
-            id: 1,            name: "John Doe",
+let mockData = {    users: [        {
+            id: 1,
+            name: "John Doe",
+            username: "johndoe",
             email: "john@example.com",
             password: "password123",
             dob: "1990-01-15",
@@ -62,8 +61,32 @@ let mockData = {
             phone: "+62812345678",
             gender: "male",
             bpjs: "0001234567890"
+        },
+        {
+            id: 2,
+            name: "Jane Smith",
+            username: "janesmith",
+            email: "jane@example.com",
+            password: "password123",
+            dob: "1992-03-22",
+            address: "456 Oak Avenue, Jakarta",
+            phone: "+62812345679",
+            gender: "female",
+            bpjs: "0001234567891"
+        },
+        {
+            id: 3,
+            name: "Ahmad Rahman",
+            username: "ahmad",
+            email: "ahmad@example.com",
+            password: "password123",
+            dob: "1988-07-10",
+            address: "789 Pine Street, Jakarta",
+            phone: "+62812345680",
+            gender: "male",
+            bpjs: "0001234567892"
         }
-    ],    polyclinics: [
+    ],polyclinics: [
         {
             id: 1,
             name: "Poli Umum",
@@ -406,30 +429,31 @@ function setActiveState(index) {
 // Authentication Functions
 function handleLogin(event) {
     event.preventDefault();
-    const email = document.getElementById('loginEmail').value;
+    const loginIdentifier = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
     // Prototype pass-through: Accept any credentials
-    if (email && password) {
+    if (loginIdentifier && password) {
         // Handle different user types
         switch(appState.selectedUserType) {
             case 'admin':
                 // Store admin session
                 sessionStorage.setItem('userRole', 'admin');
                 sessionStorage.setItem('userData', JSON.stringify({
-                    email: email,
+                    loginIdentifier: loginIdentifier,
                     name: 'Admin',
                     role: 'admin'
                 }));
                 // Redirect to admin console
                 window.location.href = 'admin/admin_index.html';
                 return;
-                  case 'doctor':
+                  
+            case 'doctor':
                 // Store doctor session
                 sessionStorage.setItem('userRole', 'dokter');
                 sessionStorage.setItem('userData', JSON.stringify({
                     id: 1,
-                    email: email,
+                    loginIdentifier: loginIdentifier,
                     name: 'Dr. Ahmad Subarjo',
                     specialization: 'Dokter Umum',
                     polyclinic: 'Umum',
@@ -440,14 +464,23 @@ function handleLogin(event) {
                 return;
                 
             default: // patient
-                // Check if user exists in mock data, if not create a simple user
-                let user = mockData.users.find(u => u.email === email);
+                // Check if user exists in mock data by email or username
+                let user = mockData.users.find(u => 
+                    u.email === loginIdentifier || 
+                    u.username === loginIdentifier
+                );
                 
                 if (!user) {
                     // Create a new user for prototype purposes
+                    // Generate username from input if it looks like email, otherwise use as username
+                    const isEmail = loginIdentifier.includes('@');
+                    const username = isEmail ? loginIdentifier.split('@')[0] : loginIdentifier;
+                    const email = isEmail ? loginIdentifier : `${loginIdentifier}@example.com`;
+                    
                     user = {
                         id: mockData.users.length + 1,
-                        name: email.split('@')[0] || 'User', // Use email prefix as name
+                        name: username.charAt(0).toUpperCase() + username.slice(1), // Capitalize first letter
+                        username: username,
                         email: email,
                         password: password,
                         dob: '1990-01-01',
@@ -467,7 +500,7 @@ function handleLogin(event) {
                 ]);
         }
     } else {
-        showModal('Login Gagal', 'Harap masukkan email dan kata sandi.', [
+        showModal('Login Gagal', 'Harap masukkan email/nama pengguna dan kata sandi.', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
     }
@@ -482,9 +515,10 @@ function handleSignup(event) {
     
     // Basic validation for prototype - just check required fields
     const name = formData.get('name');
-    const email = formData.get('email');
-      if (!name || !email || !password) {
-        showModal('Error', 'Harap isi semua field yang diperlukan (Nama, Email, Kata Sandi).', [
+    const loginIdentifier = formData.get('email'); // This field now accepts email or username
+    
+    if (!name || !loginIdentifier || !password) {
+        showModal('Error', 'Harap isi semua field yang diperlukan (Nama, Email/Nama Pengguna, Kata Sandi).', [
             { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
         ]);
         return;
@@ -497,16 +531,22 @@ function handleSignup(event) {
         return;
     }
 
-    // Prototype pass-through: Allow any email, even if it exists
-    // Remove existing user with same email first
-    mockData.users = mockData.users.filter(u => u.email !== email);
+    // Determine if input is email or username
+    const isEmail = loginIdentifier.includes('@');
+    const username = isEmail ? loginIdentifier.split('@')[0] : loginIdentifier;
+    const email = isEmail ? loginIdentifier : `${loginIdentifier}@example.com`;
+
+    // Prototype pass-through: Allow any identifier, remove existing user with same email or username
+    mockData.users = mockData.users.filter(u => u.email !== email && u.username !== username);
 
     // Create new user with provided data or defaults
     const newUser = {
         id: mockData.users.length + 1,
         name: name,
+        username: username,
         email: email,
-        password: password,        dob: formData.get('dob') || '1990-01-01',
+        password: password,
+        dob: formData.get('dob') || '1990-01-01',
         address: formData.get('address') || 'Alamat Contoh, Jakarta',
         phone: formData.get('phone') || '+62812345678',
         gender: formData.get('gender') || 'male',
@@ -516,7 +556,8 @@ function handleSignup(event) {
     mockData.users.push(newUser);
     appState.currentUser = newUser;
     localStorage.setItem('currentUser', JSON.stringify(newUser));
-      showView('home');
+    
+    showView('home');
     showModal('Akun Berhasil Dibuat', 'Akun Anda berhasil dibuat! Selamat datang di RSU Delima.', [
         { text: 'OK', class: 'btn-primary', action: 'closeModal()' }
     ]);
@@ -1217,8 +1258,16 @@ function loadProfileContent() {
     const user = appState.currentUser;
     document.getElementById('profileName').textContent = user.name;
     document.getElementById('profileEmail').textContent = user.email;
-      document.getElementById('profileDetails').innerHTML = `
+    document.getElementById('profileDetails').innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nama Pengguna</label>
+                <p class="mt-1 text-sm text-gray-900">${user.username || 'Tidak tersedia'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                <p class="mt-1 text-sm text-gray-900">${user.email}</p>
+            </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
                 <p class="mt-1 text-sm text-gray-900">${formatDate(user.dob)}</p>
