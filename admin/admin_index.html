@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Console</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Admin Console</title>    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="../style.css" rel="stylesheet">
     <link href="admin_style.css" rel="stylesheet">
     <script>
@@ -82,7 +82,44 @@
                         </div>
                     </div>
                 </div>
-            </div>            <!-- Patient Visit Reports Section -->
+            </div>
+
+            <!-- Graphical Statistics Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Patient Distribution Chart -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">📊 Distribusi Pasien per Poliklinik</h3>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="polyclinicChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Visits Trend Chart -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">📈 Tren Kunjungan Harian</h3>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="visitsChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Doctor Utilization Chart -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">👨‍⚕️ Utilisasi Jadwal Dokter</h3>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="doctorUtilizationChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Gender Distribution Chart -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">⚧ Distribusi Jenis Kelamin Pasien</h3>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Visit Reports Section -->
             <div class="bg-white p-4 md:p-6 rounded-lg shadow mb-6">
                 <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 space-y-4 lg:space-y-0">
                     <h2 class="text-lg font-semibold text-gray-800">Rekap Kunjungan Pasien</h2>

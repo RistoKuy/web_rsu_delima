@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             sessionStorage.removeItem('userRole');
             sessionStorage.removeItem('userData');
             window.location.href = '../index.html';
-        });    }    
+        });
+    }
     
     // Global variables for mock data
     let patients = [];
@@ -47,112 +48,318 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load data before initializing the application
     await loadMockData();
 
-    // --- Statistics Functions ---
-    function updateStatistics() {
-        // Update total patients
-        document.getElementById('totalPatients').textContent = patients.length;
-        
-        // Update total schedules
-        document.getElementById('totalSchedules').textContent = doctorSchedules.length;
-        
-        // Calculate available slots
-        const availableSlots = doctorSchedules.reduce((total, schedule) => {
-            return total + (schedule.quota - schedule.registered);
-        }, 0);
-        document.getElementById('availableSlots').textContent = availableSlots;
-        
-        // Update additional statistics for the new features
-        updateExtendedStatistics();
+    // --- Chart Management Functions ---
+    let polyclinicChart, visitsChart, doctorUtilizationChart, genderChart;
+
+    function initializeCharts() {
+        createPolyclinicChart();
+        createVisitsChart();
+        createDoctorUtilizationChart();
+        createGenderChart();
     }
 
-    function updateExtendedStatistics() {
-        // Calculate active polyclinics
-        const activePolyclinics = new Set(patientVisits.map(visit => visit.polyclinic)).size;
-        const totalActivePolyclinicsElement = document.getElementById('totalActivePolyclinics');
-        if (totalActivePolyclinicsElement) {
-            totalActivePolyclinicsElement.textContent = activePolyclinics;
+    function createPolyclinicChart() {
+        const ctx = document.getElementById('polyclinicChart');
+        if (!ctx) return;
+
+        // Count visits by polyclinic
+        const polyclinicData = {};
+        patientVisits.forEach(visit => {
+            if (visit.polyclinic) {
+                polyclinicData[visit.polyclinic] = (polyclinicData[visit.polyclinic] || 0) + 1;
+            }
+        });
+
+        const labels = Object.keys(polyclinicData);
+        const data = Object.values(polyclinicData);
+        const colors = [
+            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+            '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'
+        ];
+
+        polyclinicChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createVisitsChart() {
+        const ctx = document.getElementById('visitsChart');
+        if (!ctx) return;
+
+        // Group visits by date for the last 7 days
+        const last7Days = [];
+        const visitCounts = [];
+        const today = new Date();
+
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            last7Days.push(date.toLocaleDateString('id-ID', { 
+                month: 'short', 
+                day: 'numeric' 
+            }));
+
+            const count = patientVisits.filter(visit => visit.visitDate === dateStr).length;
+            visitCounts.push(count);
         }
-        
-        // Calculate today's schedules
-        const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
-        const todayVisits = patientVisits.filter(visit => visit.visitDate === today);
-        const todaySchedulesCount = new Set(todayVisits.map(visit => visit.scheduleId)).size;
-        const todaySchedulesElement = document.getElementById('todaySchedules');
-        if (todaySchedulesElement) {
-            todaySchedulesElement.textContent = todaySchedulesCount;
+
+        visitsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: last7Days,
+                datasets: [{
+                    label: 'Kunjungan',
+                    data: visitCounts,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    function createDoctorUtilizationChart() {
+        const ctx = document.getElementById('doctorUtilizationChart');
+        if (!ctx) return;
+
+        const doctorData = doctorSchedules.map(schedule => ({
+            name: schedule.doctorName || 'Unknown Doctor',
+            utilization: schedule.quota > 0 ? ((schedule.registered / schedule.quota) * 100) : 0
+        })).slice(0, 8);
+
+        const labels = doctorData.map(d => d.name);
+        const data = doctorData.map(d => d.utilization);
+
+        doctorUtilizationChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Utilisasi (%)',
+                    data: data,
+                    backgroundColor: data.map(value => 
+                        value >= 80 ? '#ef4444' : 
+                        value >= 60 ? '#f59e0b' : '#10b981'
+                    ),
+                    borderRadius: 4,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    function createGenderChart() {
+        const ctx = document.getElementById('genderChart');
+        if (!ctx) return;
+
+        // Count patients by gender
+        const genderData = { 'Laki-laki': 0, 'Perempuan': 0 };
+        patients.forEach(patient => {
+            if (patient.gender) {
+                genderData[patient.gender] = (genderData[patient.gender] || 0) + 1;
+            }
+        });
+
+        genderChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(genderData),
+                datasets: [{
+                    data: Object.values(genderData),
+                    backgroundColor: ['#3b82f6', '#ec4899'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateCharts() {
+        if (polyclinicChart) {
+            polyclinicChart.destroy();
+            createPolyclinicChart();
         }
-        
-        // Calculate average utilization
-        const totalUtilization = detailedSchedules.reduce((total, schedule) => {
-            const utilization = schedule.quota > 0 ? (schedule.registered / schedule.quota) * 100 : 0;
-            return total + utilization;
-        }, 0);
-        const averageUtilization = detailedSchedules.length > 0 ? 
-            (totalUtilization / detailedSchedules.length).toFixed(1) : 0;
-        const averageUtilizationElement = document.getElementById('averageUtilization');
-        if (averageUtilizationElement) {
-            averageUtilizationElement.textContent = averageUtilization + '%';
+        if (visitsChart) {
+            visitsChart.destroy();
+            createVisitsChart();
         }
+        if (doctorUtilizationChart) {
+            doctorUtilizationChart.destroy();
+            createDoctorUtilizationChart();
+        }
+        if (genderChart) {
+            genderChart.destroy();
+            createGenderChart();
+        }
+    }
+
+    // --- Statistics Functions ---
+    function updateOperationalStatistics() {
+        // Total Pasien
+        const totalPatients = patients.length;
+        document.getElementById('totalPatients').textContent = totalPatients;
+
+        // Total Jadwal Dokter
+        const totalSchedules = doctorSchedules.length;
+        document.getElementById('totalSchedules').textContent = totalSchedules;
+
+        // Slot Tersedia
+        let availableSlots = 0;
+        doctorSchedules.forEach(schedule => {
+            if (typeof schedule.quota === 'number' && typeof schedule.registered === 'number') {
+                availableSlots += Math.max(0, schedule.quota - schedule.registered);
+            }
+        });
+        document.getElementById('availableSlots').textContent = availableSlots;
+    }
+
+    function updateStatistics() {
+        updateOperationalStatistics();
+        updateCharts();
     }
 
     // --- Render Functions ---
     function renderPatientList() {
         if (!patientList) return;
-        patientList.innerHTML = ''; // Clear existing list
+        patientList.innerHTML = '';
         if (patients.length === 0) {
             patientList.innerHTML = '<p class="text-gray-500">Tidak ada data pasien.</p>';
             return;
         }
         patients.forEach(patient => {
-            const patientCard = `
-                <div class="data-card" id="patient-${patient.id}">
-                    <div class="data-card-info">
-                        <p class="name">${patient.name}</p>
-                        <p>NIK: ${patient.nik}</p>
-                    </div>
-                    <div class="data-card-actions">
-                        <button onclick="window.viewPatientDetails(${patient.id})" class="action-button view-button bg-blue-500 hover:bg-blue-600 text-white">Lihat</button>
-                        <button onclick="window.editPatient(${patient.id})" class="action-button edit-button bg-yellow-500 hover:bg-yellow-600 text-white">Edit</button>
-                        <button onclick="window.confirmDeletePatient(${patient.id})" class="action-button delete-button bg-red-500 hover:bg-red-600 text-white">Hapus</button>
-                    </div>
-                </div>
-            `;
-            patientList.insertAdjacentHTML('beforeend', patientCard);
+            const patientCard = document.createElement('div');
+            patientCard.className = 'data-card';
+            patientCard.id = 'patient-' + patient.id;
+            patientCard.innerHTML = 
+                '<div class="data-card-info">' +
+                    '<p class="name">' + patient.name + '</p>' +
+                    '<p>NIK: ' + patient.nik + '</p>' +
+                '</div>' +
+                '<div class="data-card-actions">' +
+                    '<button onclick="window.viewPatientDetails(' + patient.id + ')" class="action-button view-button bg-blue-500 hover:bg-blue-600 text-white">Lihat</button>' +
+                    '<button onclick="window.editPatient(' + patient.id + ')" class="action-button edit-button bg-yellow-500 hover:bg-yellow-600 text-white">Edit</button>' +
+                    '<button onclick="window.confirmDeletePatient(' + patient.id + ')" class="action-button delete-button bg-red-500 hover:bg-red-600 text-white">Hapus</button>' +
+                '</div>';
+            patientList.appendChild(patientCard);
         });
     }
 
     function renderDoctorScheduleList() {
         if (!doctorScheduleList) return;
-        doctorScheduleList.innerHTML = ''; // Clear existing list
-         if (doctorSchedules.length === 0) {
+        doctorScheduleList.innerHTML = '';
+        if (doctorSchedules.length === 0) {
             doctorScheduleList.innerHTML = '<p class="text-gray-500">Tidak ada jadwal dokter.</p>';
             return;
         }
         doctorSchedules.forEach(schedule => {
-            const scheduleCard = `
-                <div class="data-card" id="schedule-${schedule.id}">
-                    <div class="data-card-info">
-                        <p class="name">${schedule.doctorName} - ${schedule.polyclinic}</p>
-                        <p>Hari: ${schedule.day}, Jam: ${schedule.time}</p>
-                        <p>Kuota: ${schedule.registered}/${schedule.quota}</p>
-                    </div>
-                    <div class="data-card-actions">
-                        <button onclick="window.viewDoctorScheduleDetails(${schedule.id})" class="action-button view-button bg-blue-500 hover:bg-blue-600 text-white">Lihat</button>
-                        <button onclick="window.editDoctorSchedule(${schedule.id})" class="action-button edit-button bg-yellow-500 hover:bg-yellow-600 text-white">Edit</button>
-                        <button onclick="window.confirmDeleteDoctorSchedule(${schedule.id})" class="action-button delete-button bg-red-500 hover:bg-red-600 text-white">Hapus</button>
-                    </div>
-                </div>
-            `;
-            doctorScheduleList.insertAdjacentHTML('beforeend', scheduleCard);
+            const scheduleCard = document.createElement('div');
+            scheduleCard.className = 'data-card';
+            scheduleCard.id = 'schedule-' + schedule.id;
+            scheduleCard.innerHTML = 
+                '<div class="data-card-info">' +
+                    '<p class="name">' + schedule.doctorName + ' - ' + schedule.polyclinic + '</p>' +
+                    '<p>Hari: ' + schedule.day + ', Jam: ' + schedule.time + '</p>' +
+                    '<p>Kuota: ' + schedule.registered + '/' + schedule.quota + '</p>' +
+                '</div>' +
+                '<div class="data-card-actions">' +
+                    '<button onclick="window.viewDoctorScheduleDetails(' + schedule.id + ')" class="action-button view-button bg-blue-500 hover:bg-blue-600 text-white">Lihat</button>' +
+                    '<button onclick="window.editDoctorSchedule(' + schedule.id + ')" class="action-button edit-button bg-yellow-500 hover:bg-yellow-600 text-white">Edit</button>' +
+                    '<button onclick="window.confirmDeleteDoctorSchedule(' + schedule.id + ')" class="action-button delete-button bg-red-500 hover:bg-red-600 text-white">Hapus</button>' +
+                '</div>';
+            doctorScheduleList.appendChild(scheduleCard);
         });
     }
 
     // --- Modal Functions ---
-    window.openAdminModal = (title, content, footerButtons = '') => {
+    window.openAdminModal = (title, content, footerButtons) => {
         if (!adminModal || !adminModalTitle || !adminModalBody || !adminModalFooter) return;
         adminModalTitle.textContent = title;
         adminModalBody.innerHTML = content;
-        adminModalFooter.innerHTML = '<button type="button" onclick="window.closeAdminModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded mr-2">Tutup</button>' + footerButtons;
+        adminModalFooter.innerHTML = footerButtons || '';
         adminModal.classList.remove('hidden');
     };
 
@@ -163,926 +370,822 @@ document.addEventListener('DOMContentLoaded', async () => {
         adminModalFooter.innerHTML = '';
     };
 
-    // --- Patient Actions ---
-    window.viewPatientDetails = (patientId) => {
-        const patient = patients.find(p => p.id === patientId);
-        if (!patient) return;
-        const detailsHtml = `
-            <div class="space-y-2">
-                <p><strong>Nama:</strong> ${patient.name}</p>
-                <p><strong>NIK:</strong> ${patient.nik}</p>
-                <p><strong>Alamat:</strong> ${patient.address}</p>
-                <p><strong>Telepon:</strong> ${patient.phone}</p>
-                <p><strong>Tanggal Lahir:</strong> ${patient.birthDate}</p>
-                <p><strong>Jenis Kelamin:</strong> ${patient.gender}</p>
-            </div>
-        `;
-        window.openAdminModal('Detail Pasien: ' + patient.name, detailsHtml);
-    };
-
-    window.editPatient = (patientId) => {
-        const patient = patients.find(p => p.id === patientId);
-        if (!patient) return;
-        const formHtml = `
-            <form id="editPatientForm" class="space-y-4">
-                <input type="hidden" id="editPatientId" value="${patient.id}">
-                <div>
-                    <label for="editPatientName" class="block text-sm font-medium text-gray-700">Nama:</label>
-                    <input type="text" id="editPatientName" value="${patient.name}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="editPatientNik" class="block text-sm font-medium text-gray-700">NIK:</label>
-                    <input type="text" id="editPatientNik" value="${patient.nik}" required pattern="\\d{16}" title="NIK harus 16 digit angka" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="editPatientAddress" class="block text-sm font-medium text-gray-700">Alamat:</label>
-                    <textarea id="editPatientAddress" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">${patient.address}</textarea>
-                </div>
-                <div>
-                    <label for="editPatientPhone" class="block text-sm font-medium text-gray-700">Telepon:</label>
-                    <input type="tel" id="editPatientPhone" value="${patient.phone}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="editPatientBirthDate" class="block text-sm font-medium text-gray-700">Tanggal Lahir:</label>
-                    <input type="date" id="editPatientBirthDate" value="${patient.birthDate}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="editPatientGender" class="block text-sm font-medium text-gray-700">Jenis Kelamin:</label>
-                    <select id="editPatientGender" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                        <option value="Laki-laki" ${patient.gender === 'Laki-laki' ? 'selected' : ''}>Laki-laki</option>
-                        <option value="Perempuan" ${patient.gender === 'Perempuan' ? 'selected' : ''}>Perempuan</option>
-                    </select>
-                </div>
-            </form>
-        `;
-        const footerButtons = '<button type="button" onclick="window.savePatientChanges()" class="save-button bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">Simpan Perubahan</button>';
-        window.openAdminModal('Edit Pasien: ' + patient.name, formHtml, footerButtons);
-    };
-
-    window.savePatientChanges = () => {
-        const form = document.getElementById('editPatientForm');
-        if (!form || !form.checkValidity()) {
-            form?.reportValidity();
-            return;
-        }
-
-        const id = parseInt(document.getElementById('editPatientId').value);
-        const updatedPatient = {
-            id: id,
-            name: document.getElementById('editPatientName').value,
-            nik: document.getElementById('editPatientNik').value,
-            address: document.getElementById('editPatientAddress').value,
-            phone: document.getElementById('editPatientPhone').value,
-            birthDate: document.getElementById('editPatientBirthDate').value,
-            gender: document.getElementById('editPatientGender').value,
-        };        patients = patients.map(p => p.id === id ? updatedPatient : p);
-        renderPatientList();
-        updateStatistics();
-        window.closeAdminModal();
-        alert('Data pasien berhasil diperbarui!');
-    };
-
-    window.confirmDeletePatient = (patientId) => {
-        const patient = patients.find(p => p.id === patientId);
-        if (!patient) return;
-        const confirmationHtml = `<p>Anda yakin ingin menghapus data pasien <strong>${patient.name}</strong> (NIK: ${patient.nik})?</p>`;
-        const footerButtons = `<button type="button" onclick="window.deletePatient(${patientId})" class="action-button delete-button bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Hapus</button>`;
-        window.openAdminModal('Konfirmasi Hapus Pasien', confirmationHtml, footerButtons);
-    };    window.deletePatient = (patientId) => {
-        patients = patients.filter(p => p.id !== patientId);
-        renderPatientList();
-        updateStatistics();
-        window.closeAdminModal();
-        alert('Data pasien berhasil dihapus.');
-    };
-
-
-    // --- Doctor Schedule Actions ---
-    window.viewDoctorScheduleDetails = (scheduleId) => {
-        const schedule = doctorSchedules.find(s => s.id === scheduleId);
-        if (!schedule) return;
-        const detailsHtml = `
-            <div class="space-y-2">
-                <p><strong>Nama Dokter:</strong> ${schedule.doctorName}</p>
-                <p><strong>Poliklinik:</strong> ${schedule.polyclinic}</p>
-                <p><strong>Hari:</strong> ${schedule.day}</p>
-                <p><strong>Waktu:</strong> ${schedule.time}</p>
-                <p><strong>Kuota:</strong> ${schedule.quota}</p>
-                <p><strong>Terdaftar:</strong> ${schedule.registered}</p>
-            </div>
-        `;
-        window.openAdminModal('Detail Jadwal Dokter: ' + schedule.doctorName, detailsHtml);
-    };
-
-    window.editDoctorSchedule = (scheduleId) => {
-        const schedule = doctorSchedules.find(s => s.id === scheduleId);
-        if (!schedule) return;
-        const formHtml = `
-            <form id="editScheduleForm" class="space-y-4">
-                <input type="hidden" id="editScheduleId" value="${schedule.id}">
-                <p><strong>Dokter:</strong> ${schedule.doctorName}</p>
-                <p><strong>Poliklinik:</strong> ${schedule.polyclinic}</p>
-                <p><strong>Hari:</strong> ${schedule.day}</p>
-                <div>
-                    <label for="editScheduleTime" class="block text-sm font-medium text-gray-700">Waktu (misal: 09:00 - 12:00):</label>
-                    <input type="text" id="editScheduleTime" value="${schedule.time}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="editScheduleQuota" class="block text-sm font-medium text-gray-700">Kuota:</label>
-                    <input type="number" id="editScheduleQuota" value="${schedule.quota}" required min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-                 <div>
-                    <label for="editScheduleRegistered" class="block text-sm font-medium text-gray-700">Terdaftar:</label>
-                    <input type="number" id="editScheduleRegistered" value="${schedule.registered}" required min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                </div>
-            </form>
-        `;
-        const footerButtons = '<button type="button" onclick="window.saveDoctorScheduleChanges()" class="save-button bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">Simpan Perubahan</button>';
-        window.openAdminModal('Edit Jadwal Dokter: ' + schedule.doctorName, formHtml, footerButtons);
-    };
-
-    window.saveDoctorScheduleChanges = () => {
-        const form = document.getElementById('editScheduleForm');
-        if (!form || !form.checkValidity()) {
-            form?.reportValidity();
-            return;
-        }
-
-        const id = parseInt(document.getElementById('editScheduleId').value);
-        const updatedTime = document.getElementById('editScheduleTime').value;
-        const updatedQuota = parseInt(document.getElementById('editScheduleQuota').value);
-        const updatedRegistered = parseInt(document.getElementById('editScheduleRegistered').value);
-
-        if (updatedRegistered > updatedQuota) {
-            alert('Jumlah pasien terdaftar tidak boleh melebihi kuota.');
-            return;
-        }
-
-        doctorSchedules = doctorSchedules.map(s => {
-            if (s.id === id) {
-                return { ...s, time: updatedTime, quota: updatedQuota, registered: updatedRegistered };
-            }
-            return s;        });
-        renderDoctorScheduleList();
-        updateStatistics();
-        window.closeAdminModal();
-        alert('Jadwal dokter berhasil diperbarui!');
-    };
-
-    window.confirmDeleteDoctorSchedule = (scheduleId) => {
-        const schedule = doctorSchedules.find(s => s.id === scheduleId);
-        if (!schedule) return;
-        const confirmationHtml = `<p>Anda yakin ingin menghapus jadwal untuk <strong>${schedule.doctorName}</strong> pada hari ${schedule.day} (${schedule.time})?</p>`;
-        const footerButtons = `<button type="button" onclick="window.deleteDoctorSchedule(${scheduleId})" class="action-button delete-button bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Hapus</button>`;
-        window.openAdminModal('Konfirmasi Hapus Jadwal', confirmationHtml, footerButtons);
-    };    window.deleteDoctorSchedule = (scheduleId) => {
-        doctorSchedules = doctorSchedules.filter(s => s.id !== scheduleId);
-        renderDoctorScheduleList();
-        updateStatistics();
-        window.closeAdminModal();
-        alert('Jadwal dokter berhasil dihapus.');
-    };
-
-    // --- Visit Report Functions ---
-    window.generateVisitReport = () => {
-        const reportType = document.getElementById('reportType').value;
-        const reportDate = document.getElementById('reportDate').value;
-        
-        if (!reportDate) {
-            alert('Silakan pilih tanggal untuk generate laporan');
-            return;
-        }
-        
-        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
-        displayVisitReport(filteredVisits, reportType, reportDate);
-    };
-
-    // Fungsi baru untuk generate laporan per poli
-    window.generatePolyclinicServiceReport = () => {
-        const reportDate = document.getElementById('reportDate').value || new Date().toISOString().split('T')[0];
-        const reportType = document.getElementById('reportType').value || 'daily';
-        
-        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
-        generateDetailedPolyclinicReport(filteredVisits, reportType);
-    };
-
-    // Fungsi baru untuk generate laporan per jadwal
-    window.generateScheduleServiceReport = () => {
-        const reportDate = document.getElementById('reportDate').value || new Date().toISOString().split('T')[0];
-        const reportType = document.getElementById('reportType').value || 'daily';
-        
-        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
-        generateScheduleReport(filteredVisits, reportType);
-    };
-
-    // Export function for visit reports
-    window.exportVisitReport = () => {
-        const reportType = document.getElementById('reportType').value;
-        const reportDate = document.getElementById('reportDate').value;
-        
-        if (!reportDate) {
-            alert('Silakan pilih tanggal untuk export laporan');
-            return;
-        }
-        
-        const filteredVisits = filterVisitsByDateRange(reportDate, reportType);
-        
-        if (filteredVisits.length === 0) {
-            alert('Tidak ada data untuk periode yang dipilih');
-            return;
-        }
-        
-        // Create CSV content
-        const csvHeader = 'No,Tanggal Kunjungan,Jam Kunjungan,Nama Pasien,Dokter,Poliklinik,Status,No Antrian,ID Jadwal\n';
-        const csvContent = filteredVisits.map((visit, index) => {
-            return `${index + 1},"${visit.visitDate}","${visit.visitTime}","${visit.patientName}","${visit.doctorName}","${visit.polyclinic}","${visit.status}","${visit.queueNumber}","${visit.scheduleId}"`;
-        }).join('\n');
-        
-        const fullCsv = csvHeader + csvContent;
-        
-        // Create and download file
-        const blob = new Blob([fullCsv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        
-        const dateStr = new Date().toISOString().split('T')[0];
-        const filename = `laporan_kunjungan_${reportType}_${dateStr}.csv`;
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Show success message
-        alert(`Laporan berhasil diexport ke file: ${filename}`);
-    };
-
-    function generateDetailedPolyclinicReport(visits, reportType) {
-        const polyclinicData = {};
-        
-        // Group visits by polyclinic
-        visits.forEach(visit => {
-            if (!polyclinicData[visit.polyclinic]) {
-                polyclinicData[visit.polyclinic] = {
-                    total: 0,
-                    completed: 0,
-                    inProgress: 0,
-                    waiting: 0,
-                    doctors: new Set(),
-                    schedules: {},
-                    patients: new Set(),
-                    avgWaitTime: 0,
-                    peakHours: {}
-                };
-            }
-            
-            const data = polyclinicData[visit.polyclinic];
-            data.total++;
-            data.doctors.add(visit.doctorName);
-            data.patients.add(visit.patientId);
-            
-            // Track schedules
-            const scheduleKey = `${visit.doctorName} - ${visit.visitDate}`;
-            if (!data.schedules[scheduleKey]) {
-                data.schedules[scheduleKey] = {
-                    doctor: visit.doctorName,
-                    date: visit.visitDate,
-                    patients: 0,
-                    completed: 0,
-                    inProgress: 0,
-                    waiting: 0
-                };
-            }
-            data.schedules[scheduleKey].patients++;
-            
-            // Track peak hours
-            const hour = visit.visitTime.split(':')[0];
-            data.peakHours[hour] = (data.peakHours[hour] || 0) + 1;
-            
-            switch (visit.status) {
-                case 'Selesai':
-                    data.completed++;
-                    data.schedules[scheduleKey].completed++;
-                    break;
-                case 'Sedang Dilayani':
-                    data.inProgress++;
-                    data.schedules[scheduleKey].inProgress++;
-                    break;
-                case 'Menunggu':
-                    data.waiting++;
-                    data.schedules[scheduleKey].waiting++;
-                    break;
-            }
-        });
-
-        // Display detailed polyclinic report
-        const reportContainer = document.getElementById('detailedPolyclinicReport') || createDetailedReportContainer();
-        reportContainer.innerHTML = '<h3 class="text-lg font-semibold mb-4 text-gray-800">📊 Rekap Layanan Per Poliklinik</h3>';
-
-        if (Object.keys(polyclinicData).length === 0) {
-            reportContainer.innerHTML += '<p class="text-gray-500 text-center">Tidak ada data kunjungan untuk periode ini</p>';
-            return;
-        }
-
-        Object.entries(polyclinicData).forEach(([polyclinic, data]) => {
-            const peakHour = Object.entries(data.peakHours).reduce((a, b) => 
-                data.peakHours[a[0]] > data.peakHours[b[0]] ? a : b, ['00', 0]
-            );
-            
-            const completionRate = ((data.completed / data.total) * 100).toFixed(1);
-            
-            const polyclinicCard = document.createElement('div');
-            polyclinicCard.className = 'bg-white border rounded-lg p-4 mb-4 shadow-sm';
-            polyclinicCard.innerHTML = `
-                <div class="border-b pb-3 mb-3">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-lg font-semibold text-gray-800">${polyclinic}</h4>
-                        <span class="text-sm text-gray-500">${data.total} total kunjungan</span>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-green-600">${data.completed}</div>
-                            <div class="text-xs text-gray-600">Selesai</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-blue-600">${data.inProgress}</div>
-                            <div class="text-xs text-gray-600">Sedang Dilayani</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-yellow-600">${data.waiting}</div>
-                            <div class="text-xs text-gray-600">Menunggu</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-purple-600">${completionRate}%</div>
-                            <div class="text-xs text-gray-600">Tingkat Selesai</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                    <div>
-                        <div class="text-sm font-medium text-gray-700">👨‍⚕️ Dokter Aktif</div>
-                        <div class="text-lg font-semibold">${data.doctors.size} dokter</div>
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-gray-700">👥 Pasien Unik</div>
-                        <div class="text-lg font-semibold">${data.patients.size} pasien</div>
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-gray-700">⏰ Jam Sibuk</div>
-                        <div class="text-lg font-semibold">${peakHour[0]}:00 (${peakHour[1]} kunjungan)</div>
-                    </div>
-                </div>
-                
-                <div>
-                    <div class="text-sm font-medium text-gray-700 mb-2">📋 Detail Jadwal</div>
-                    <div class="max-h-32 overflow-y-auto">
-                        ${Object.values(data.schedules).map(schedule => `
-                            <div class="flex justify-between items-center py-1 px-2 bg-gray-50 rounded mb-1 text-sm">
-                                <span>${schedule.doctor}</span>
-                                <span class="text-gray-600">${new Date(schedule.date).toLocaleDateString('id-ID')}</span>
-                                <span class="font-semibold">${schedule.patients} pasien</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            
-            reportContainer.appendChild(polyclinicCard);
-        });
-    }
-
-    function generateScheduleReport(visits, reportType) {
-        const scheduleData = {};
-        
-        // Group visits by schedule
-        visits.forEach(visit => {
-            const scheduleKey = `${visit.scheduleId}-${visit.doctorName}-${visit.visitDate}`;
-            
-            if (!scheduleData[scheduleKey]) {
-                const matchingSchedule = detailedSchedules.find(s => 
-                    s.doctorName === visit.doctorName && s.polyclinic === visit.polyclinic
-                );
-                
-                scheduleData[scheduleKey] = {
-                    scheduleId: visit.scheduleId,
-                    doctorName: visit.doctorName,
-                    polyclinic: visit.polyclinic,
-                    date: visit.visitDate,
-                    day: matchingSchedule ? matchingSchedule.day : 'N/A',
-                    time: matchingSchedule ? matchingSchedule.time : 'N/A',
-                    quota: matchingSchedule ? matchingSchedule.quota : 0,
-                    total: 0,
-                    completed: 0,
-                    inProgress: 0,
-                    waiting: 0,
-                    utilizationRate: 0,
-                    patients: []
-                };
-            }
-            
-            const data = scheduleData[scheduleKey];
-            data.total++;
-            data.patients.push({
-                name: visit.patientName,
-                time: visit.visitTime,
-                status: visit.status,
-                queueNumber: visit.queueNumber
-            });
-            
-            switch (visit.status) {
-                case 'Selesai':
-                    data.completed++;
-                    break;
-                case 'Sedang Dilayani':
-                    data.inProgress++;
-                    break;
-                case 'Menunggu':
-                    data.waiting++;
-                    break;
-            }
-        });
-
-        // Calculate utilization rates
-        Object.values(scheduleData).forEach(schedule => {
-            schedule.utilizationRate = schedule.quota > 0 ? 
-                ((schedule.total / schedule.quota) * 100).toFixed(1) : 0;
-        });
-
-        // Display schedule report
-        const reportContainer = document.getElementById('scheduleReport') || createScheduleReportContainer();
-        reportContainer.innerHTML = '<h3 class="text-lg font-semibold mb-4 text-gray-800">🗓️ Rekap Layanan Per Jadwal</h3>';
-
-        if (Object.keys(scheduleData).length === 0) {
-            reportContainer.innerHTML += '<p class="text-gray-500 text-center">Tidak ada data jadwal untuk periode ini</p>';
-            return;
-        }
-
-        // Sort by utilization rate (highest first)
-        const sortedSchedules = Object.values(scheduleData).sort((a, b) => b.utilizationRate - a.utilizationRate);
-
-        sortedSchedules.forEach(schedule => {
-            const utilizationColor = schedule.utilizationRate >= 80 ? 'text-red-600' : 
-                                   schedule.utilizationRate >= 60 ? 'text-yellow-600' : 'text-green-600';
-            
-            const scheduleCard = document.createElement('div');
-            scheduleCard.className = 'bg-white border rounded-lg p-4 mb-4 shadow-sm';
-            scheduleCard.innerHTML = `
-                <div class="border-b pb-3 mb-3">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-lg font-semibold text-gray-800">${schedule.doctorName}</h4>
-                            <p class="text-sm text-gray-600">${schedule.polyclinic} • ${schedule.day} • ${schedule.time}</p>
-                            <p class="text-xs text-gray-500">${new Date(schedule.date).toLocaleDateString('id-ID')}</p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold ${utilizationColor}">${schedule.utilizationRate}%</div>
-                            <div class="text-xs text-gray-600">Tingkat Utilisasi</div>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-3">
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-gray-800">${schedule.total}/${schedule.quota}</div>
-                            <div class="text-xs text-gray-600">Pasien Terdaftar</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-green-600">${schedule.completed}</div>
-                            <div class="text-xs text-gray-600">Selesai</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-blue-600">${schedule.inProgress}</div>
-                            <div class="text-xs text-gray-600">Sedang Dilayani</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-yellow-600">${schedule.waiting}</div>
-                            <div class="text-xs text-gray-600">Menunggu</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-bold text-purple-600">${schedule.quota - schedule.total}</div>
-                            <div class="text-xs text-gray-600">Slot Tersisa</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div>
-                    <div class="text-sm font-medium text-gray-700 mb-2">👥 Daftar Pasien (${schedule.patients.length})</div>
-                    <div class="max-h-40 overflow-y-auto">
-                        ${schedule.patients.length > 0 ? schedule.patients.map(patient => {
-                            const statusColor = patient.status === 'Selesai' ? 'bg-green-100 text-green-800' :
-                                              patient.status === 'Sedang Dilayani' ? 'bg-blue-100 text-blue-800' :
-                                              'bg-yellow-100 text-yellow-800';
-                            return `
-                                <div class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded mb-1 text-sm">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="font-mono text-xs bg-gray-200 px-2 py-1 rounded">${patient.queueNumber}</span>
-                                        <span class="font-medium">${patient.name}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <span class="text-gray-600">${patient.time}</span>
-                                        <span class="px-2 py-1 rounded-full text-xs ${statusColor}">${patient.status}</span>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('') : '<p class="text-gray-500 text-center py-2">Belum ada pasien terdaftar</p>'}
-                    </div>
-                </div>
-            `;
-            
-            reportContainer.appendChild(scheduleCard);
-        });
-    }
-
-    function createDetailedReportContainer() {
-        const container = document.createElement('div');
-        container.id = 'detailedPolyclinicReport';
-        container.className = 'mt-6';
-        
-        const reportsSection = document.querySelector('.bg-white.p-4.md\\:p-6.rounded-lg.shadow.mb-6');
-        if (reportsSection) {
-            reportsSection.appendChild(container);
-        }
-        
-        return container;
-    }
-
-    function createScheduleReportContainer() {
-        const container = document.createElement('div');
-        container.id = 'scheduleReport';
-        container.className = 'mt-6';
-        
-        const reportsSection = document.querySelector('.bg-white.p-4.md\\:p-6.rounded-lg.shadow.mb-6');
-        if (reportsSection) {
-            reportsSection.appendChild(container);
-        }
-        
-        return container;
-    }
-
-    // Helper functions for visit reports
-    function filterVisitsByDateRange(selectedDate, reportType) {
-        const selectedDateObj = new Date(selectedDate);
-        const today = new Date();
-        
-        return patientVisits.filter(visit => {
-            const visitDate = new Date(visit.visitDate);
-            
-            switch (reportType) {
-                case 'daily':
-                    return visitDate.toDateString() === selectedDateObj.toDateString();
-                    
-                case 'weekly':
-                    // Calculate start of week (Monday)
-                    const startOfWeek = new Date(selectedDateObj);
-                    const dayOfWeek = startOfWeek.getDay() === 0 ? 7 : startOfWeek.getDay(); // Convert Sunday to 7
-                    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek + 1);
-                    
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(endOfWeek.getDate() + 6);
-                    
-                    return visitDate >= startOfWeek && visitDate <= endOfWeek;
-                    
-                case 'monthly':
-                    return visitDate.getMonth() === selectedDateObj.getMonth() && 
-                           visitDate.getFullYear() === selectedDateObj.getFullYear();
-                          
-                default:
-                    return false;
-            }
-        });
-    }
-
-    function displayVisitReport(visits, reportType, reportDate) {
-        // Clear existing reports
-        const reportContent = document.getElementById('reportContent');
-        if (!reportContent) return;
-        
-        // Update summary statistics
-        updateReportSummary(visits);
-        
-        // Display polyclinic breakdown
-        displayPolyclinicBreakdown(visits);
-        
-        // Display doctor breakdown
-        displayDoctorBreakdown(visits);
-        
-        // Display detailed visit list
-        displayDetailedVisitList(visits);
-    }
-
-    function updateReportSummary(visits) {
-        // Total visits
-        const totalVisitsEl = document.getElementById('totalVisits');
-        if (totalVisitsEl) totalVisitsEl.textContent = visits.length;
-        
-        // Unique patients
-        const uniquePatients = new Set(visits.map(v => v.patientId)).size;
-        const uniquePatientsEl = document.getElementById('uniquePatients');
-        if (uniquePatientsEl) uniquePatientsEl.textContent = uniquePatients;
-        
-        // Average visits per day
-        const visitDates = new Set(visits.map(v => v.visitDate));
-        const avgPerDay = visitDates.size > 0 ? (visits.length / visitDates.size).toFixed(1) : 0;
-        const avgVisitsPerDayEl = document.getElementById('avgVisitsPerDay');
-        if (avgVisitsPerDayEl) avgVisitsPerDayEl.textContent = avgPerDay;
-        
-        // Busiest polyclinic
-        const polyclinicCounts = {};
-        visits.forEach(visit => {
-            polyclinicCounts[visit.polyclinic] = (polyclinicCounts[visit.polyclinic] || 0) + 1;
-        });
-        
-        const busiestPolyclinic = Object.keys(polyclinicCounts).reduce((a, b) => 
-            polyclinicCounts[a] > polyclinicCounts[b] ? a : b, '-'
-        );
-        
-        const busiestPolyclinicEl = document.getElementById('busiestPolyclinic');
-        if (busiestPolyclinicEl) busiestPolyclinicEl.textContent = busiestPolyclinic;
-    }
-
-    function displayPolyclinicBreakdown(visits) {
-        const polyclinicReport = document.getElementById('polyclinicReport');
-        if (!polyclinicReport) return;
-        
-        const polyclinicData = {};
-        visits.forEach(visit => {
-            if (!polyclinicData[visit.polyclinic]) {
-                polyclinicData[visit.polyclinic] = 0;
-            }
-            polyclinicData[visit.polyclinic]++;
-        });
-        
-        polyclinicReport.innerHTML = '';
-        Object.entries(polyclinicData)
-            .sort(([,a], [,b]) => b - a)
-            .forEach(([polyclinic, count]) => {
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center';
-                item.innerHTML = `
-                    <span class="text-sm text-gray-600">${polyclinic}</span>
-                    <span class="font-semibold text-gray-800">${count}</span>
-                `;
-                polyclinicReport.appendChild(item);
-            });
-    }
-
-    function displayDoctorBreakdown(visits) {
-        const doctorReport = document.getElementById('doctorReport');
-        if (!doctorReport) return;
-        
-        const doctorData = {};
-        visits.forEach(visit => {
-            if (!doctorData[visit.doctorName]) {
-                doctorData[visit.doctorName] = 0;
-            }
-            doctorData[visit.doctorName]++;
-        });
-        
-        doctorReport.innerHTML = '';
-        Object.entries(doctorData)
-            .sort(([,a], [,b]) => b - a)
-            .forEach(([doctor, count]) => {
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center';
-                item.innerHTML = `
-                    <span class="text-sm text-gray-600">${doctor}</span>
-                    <span class="font-semibold text-gray-800">${count}</span>
-                `;            doctorReport.appendChild(item);
-            });
-    }
-
-    function displayDetailedVisitList(visits) {
-        // Try both visitList and visitTableBody elements
-        const visitList = document.getElementById('visitList');
-        const visitTableBody = document.getElementById('visitTableBody');
-        
-        if (!visitList && !visitTableBody) return;
-        
-        if (visitTableBody) {
-            // Clear table body
-            visitTableBody.innerHTML = '';
-            
-            if (visits.length === 0) {
-                visitTableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada kunjungan untuk periode yang dipilih</td></tr>';
-                return;
-            }
-            
-            // Sort visits by date and time
-            const sortedVisits = visits.sort((a, b) => {
-                const dateCompare = new Date(b.visitDate) - new Date(a.visitDate);
-                if (dateCompare === 0) {
-                    return b.visitTime.localeCompare(a.visitTime);
-                }
-                return dateCompare;
-            });
-            
-            sortedVisits.forEach(visit => {
-                const statusClass = visit.status === 'Selesai' ? 'bg-green-100 text-green-800' :
-                                  visit.status === 'Sedang Dilayani' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-yellow-100 text-yellow-800';
-                
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50';
-                row.innerHTML = `
-                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${new Date(visit.visitDate).toLocaleDateString('id-ID')}</td>
-                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.visitTime}</td>
-                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.patientName}</td>
-                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.doctorName}</td>
-                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.polyclinic}</td>
-                    <td class="px-2 md:px-4 py-3">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
-                            ${visit.status}
-                        </span>
-                    </td>
-                    <td class="px-2 md:px-4 py-3 text-sm text-gray-900">${visit.queueNumber}</td>
-                `;
-                visitTableBody.appendChild(row);
-            });
-        } else if (visitList) {
-            // Handle card layout (fallback)
-            visitList.innerHTML = '';
-            
-            if (visits.length === 0) {
-                visitList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada kunjungan untuk periode yang dipilih</p>';
-                return;
-            }
-            
-            // Sort visits by date and time
-            const sortedVisits = visits.sort((a, b) => {
-                const dateCompare = new Date(b.visitDate) - new Date(a.visitDate);
-                if (dateCompare === 0) {
-                    return b.visitTime.localeCompare(a.visitTime);
-                }
-                return dateCompare;
-            });
-            
-            sortedVisits.forEach(visit => {
-                const statusClass = visit.status === 'Selesai' ? 'bg-green-100 text-green-800' :
-                                  visit.status === 'Sedang Dilayani' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-yellow-100 text-yellow-800';
-                
-                const visitCard = document.createElement('div');
-                visitCard.className = 'bg-white border rounded-lg p-3 mb-2';
-                visitCard.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h4 class="font-medium text-gray-900">${visit.patientName}</h4>
-                            <p class="text-sm text-gray-600">${visit.doctorName} - ${visit.polyclinic}</p>
-                        </div>
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
-                            ${visit.status}
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm text-gray-500">
-                        <span>${new Date(visit.visitDate).toLocaleDateString('id-ID')} • ${visit.visitTime}</span>
-                        <span>No. Antrian: ${visit.queueNumber}</span>
-                    </div>
-                `;
-                visitList.appendChild(visitCard);
-            });
-        }
-    }
-
-    // Mock Data Randomizer for Testing - Dynamic version using existing mockData.json
-    function generateRandomMockData() {
-        // Extract dynamic data from existing mock data
-        const doctorNames = [...new Set(doctorSchedules.map(schedule => schedule.doctorName))];
-        const polyclinics = [...new Set(doctorSchedules.map(schedule => schedule.polyclinic))];
-        const patientNames = patients.map(patient => patient.name);
-        
-        // If no data available, use fallback arrays
-        const fallbackDoctors = [
-            'Dr. Ahmad Subarjo', 'Dr. Siti Aminah', 'Dr. Budi Prasetyo', 
-            'Dr. Sarah Johnson', 'Dr. Michael Chen', 'Dr. Emily Rodriguez'
-        ];
-        const fallbackPolyclinics = ['Umum', 'Anak', 'Gigi', 'Kardiologi', 'Mata', 'THT'];
-        const fallbackPatients = [
-            'Budi Santoso', 'Ani Lestari', 'Sari Dewi', 'Ahmad Fauzi', 'Maya Sari',
-            'Rina Putri', 'Dedi Kurniawan', 'Lina Wati', 'Joko Widodo', 'Sri Mulyani'
-        ];
-        
-        const finalDoctorNames = doctorNames.length > 0 ? doctorNames : fallbackDoctors;
-        const finalPolyclinics = polyclinics.length > 0 ? polyclinics : fallbackPolyclinics;
-        const finalPatientNames = patientNames.length > 0 ? patientNames : fallbackPatients;
-        
-        const statuses = ['Selesai', 'Sedang Dilayani', 'Menunggu'];
-        
-        // Generate time slots dynamically based on existing schedules
-        const existingTimes = [...new Set(doctorSchedules.map(schedule => {
-            // Extract times from schedule.time (e.g., "08:00 - 12:00")
-            const timeRange = schedule.time.split(' - ');
-            if (timeRange.length === 2) {
-                const startTime = timeRange[0];
-                const endTime = timeRange[1];
-                const slots = [];
-                
-                // Generate 15-minute intervals within the time range
-                const start = parseInt(startTime.split(':')[0]);
-                const end = parseInt(endTime.split(':')[0]);
-                
-                for (let hour = start; hour < end; hour++) {
-                    slots.push(`${hour.toString().padStart(2, '0')}:00`);
-                    slots.push(`${hour.toString().padStart(2, '0')}:15`);
-                    slots.push(`${hour.toString().padStart(2, '0')}:30`);
-                    slots.push(`${hour.toString().padStart(2, '0')}:45`);
-                }
-                return slots;
-            }
-            return [];
-        }).flat())];
-        
-        // Fallback time slots if no existing schedules
-        const fallbackTimeSlots = [
-            '08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30', '09:45',
-            '10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45',
-            '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', '14:30', '14:45',
-            '15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45'
-        ];
-        
-        const timeSlots = existingTimes.length > 0 ? existingTimes : fallbackTimeSlots;
-        
-        // Generate random visits for the last 30 days
-        const newVisits = [];
-        const today = new Date();
-        
-        for (let i = 0; i < 60; i++) { // Generate 60 random visits
-            const visitDate = new Date(today);
-            visitDate.setDate(today.getDate() - Math.floor(Math.random() * 30)); // Last 30 days
-            
-            const doctorName = doctorNames[Math.floor(Math.random() * doctorNames.length)];
-            const polyclinic = polyclinics[Math.floor(Math.random() * polyclinics.length)];
-            const patientName = patientNames[Math.floor(Math.random() * patientNames.length)];
-            const status = statuses[Math.floor(Math.random() * statuses.length)];
-            const visitTime = timeSlots[Math.floor(Math.random() * timeSlots.length)];
-            
-            // Generate queue number based on polyclinic
-            const queuePrefix = polyclinic === 'Umum' ? 'A' : 
-                               polyclinic === 'Anak' ? 'B' : 
-                               polyclinic === 'Gigi' ? 'C' : 
-                               polyclinic === 'Kardiologi' ? 'D' : 
-                               polyclinic === 'Mata' ? 'E' : 
-                               polyclinic === 'THT' ? 'F' : 'G';
-            
-            const queueNumber = queuePrefix + String(Math.floor(Math.random() * 50) + 1).padStart(3, '0');
-            
-            newVisits.push({
-                id: patientVisits.length + i + 1,
-                patientId: Math.floor(Math.random() * 20) + 1,
-                patientName: patientName,
-                doctorId: Math.floor(Math.random() * 12) + 1,
-                doctorName: doctorName,
-                polyclinic: polyclinic,
-                visitDate: visitDate.toISOString().split('T')[0],
-                visitTime: visitTime,
-                status: status,
-                queueNumber: queueNumber,
-                scheduleId: Math.floor(Math.random() * 9) + 1
-            });
-        }
-        
-        // Add new visits to existing data
-        patientVisits.push(...newVisits);
-        
-        // Sort by date (newest first)
-        patientVisits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
-        
-        console.log(`Generated ${newVisits.length} additional mock visits. Total: ${patientVisits.length}`);
-        
-        // Update statistics after generating new data
-        updateStatistics();
-        
-        return newVisits.length;
-    }
-
-    // Function to reset mock data
-    function resetMockData() {
-        // Reset to original 25 visits
-        patientVisits.splice(25); // Keep only first 25 items
-        updateStatistics();
-        console.log('Mock data reset to original 25 visits');
-    }
-
-    // Add buttons for mock data management
-    window.generateRandomData = () => {
-        const generated = generateRandomMockData();
-        alert(`Generated ${generated} additional mock visits for testing!`);
-    };
-
-    window.resetMockData = () => {
-        resetMockData();
-        alert('Mock data has been reset to original state!');
-    };
-
-    // Initialize the admin panel when DOM is loaded
+    // Initialize the admin panel
     renderPatientList();
     renderDoctorScheduleList();
     updateStatistics();
+    
+    // Initialize charts after data is loaded
+    initializeCharts();
 
     // Set default date to today for reports
     const reportDateInput = document.getElementById('reportDate');
     if (reportDateInput) {
         reportDateInput.value = new Date().toISOString().split('T')[0];
     }
+
+    // --- DATA RECAP FUNCTIONS ---
+    
+    // Helper function to get date range based on report type
+    function getDateRange(reportType, selectedDate) {
+        const date = new Date(selectedDate);
+        const today = new Date();
+        
+        switch(reportType) {
+            case 'daily':
+                return {
+                    start: selectedDate,
+                    end: selectedDate,
+                    label: `Tanggal ${date.toLocaleDateString('id-ID')}`
+                };
+            case 'weekly':
+                const startOfWeek = new Date(date);
+                startOfWeek.setDate(date.getDate() - date.getDay());
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                return {
+                    start: startOfWeek.toISOString().split('T')[0],
+                    end: endOfWeek.toISOString().split('T')[0],
+                    label: `Minggu ${startOfWeek.toLocaleDateString('id-ID')} - ${endOfWeek.toLocaleDateString('id-ID')}`
+                };
+            case 'monthly':
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const startOfMonth = new Date(year, month, 1);
+                const endOfMonth = new Date(year, month + 1, 0);
+                return {
+                    start: startOfMonth.toISOString().split('T')[0],
+                    end: endOfMonth.toISOString().split('T')[0],
+                    label: `Bulan ${date.toLocaleDateString('id-ID', {month: 'long', year: 'numeric'})}`
+                };
+            default:
+                return { start: selectedDate, end: selectedDate, label: date.toLocaleDateString('id-ID') };
+        }
+    }
+
+    // Filter visits by date range
+    function filterVisitsByDateRange(startDate, endDate) {
+        return patientVisits.filter(visit => {
+            if (!visit.visitDate) return false;
+            return visit.visitDate >= startDate && visit.visitDate <= endDate;
+        });
+    }
+
+    // Generate main visit report
+    window.generateVisitReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const selectedDate = document.getElementById('reportDate').value;
+        
+        if (!selectedDate) {
+            alert('Silakan pilih tanggal terlebih dahulu');
+            return;
+        }
+
+        const dateRange = getDateRange(reportType, selectedDate);
+        const filteredVisits = filterVisitsByDateRange(dateRange.start, dateRange.end);
+        
+        // Calculate summary statistics
+        const totalVisits = filteredVisits.length;
+        const uniquePatients = new Set(filteredVisits.map(v => v.patientId)).size;
+        const daysInRange = reportType === 'daily' ? 1 : 
+                           reportType === 'weekly' ? 7 : 
+                           new Date(new Date(selectedDate).getFullYear(), new Date(selectedDate).getMonth() + 1, 0).getDate();
+        const avgVisitsPerDay = (totalVisits / daysInRange).toFixed(1);
+        
+        // Find busiest polyclinic
+        const polyclinicCounts = {};
+        filteredVisits.forEach(visit => {
+            if (visit.polyclinic) {
+                polyclinicCounts[visit.polyclinic] = (polyclinicCounts[visit.polyclinic] || 0) + 1;
+            }
+        });
+        const busiestPolyclinic = Object.keys(polyclinicCounts).reduce((a, b) => 
+            polyclinicCounts[a] > polyclinicCounts[b] ? a : b, '-'
+        );
+
+        // Update summary cards
+        document.getElementById('totalVisits').textContent = totalVisits;
+        document.getElementById('uniquePatients').textContent = uniquePatients;
+        document.getElementById('avgVisitsPerDay').textContent = avgVisitsPerDay;
+        document.getElementById('busiestPolyclinic').textContent = busiestPolyclinic;
+
+        // Update additional stats
+        const activePolyclinics = Object.keys(polyclinicCounts).length;
+        document.getElementById('totalActivePolyclinics').textContent = activePolyclinics;
+        
+        // Today's schedules
+        const today = new Date().toISOString().split('T')[0];
+        const todaySchedules = doctorSchedules.filter(schedule => {
+            // Assuming schedules are for today if they're active
+            return schedule.isActive;
+        }).length;
+        document.getElementById('todaySchedules').textContent = todaySchedules;
+
+        // Average utilization
+        const totalQuota = doctorSchedules.reduce((sum, schedule) => sum + (schedule.quota || 0), 0);
+        const totalRegistered = doctorSchedules.reduce((sum, schedule) => sum + (schedule.registered || 0), 0);
+        const avgUtilization = totalQuota > 0 ? ((totalRegistered / totalQuota) * 100).toFixed(1) : 0;
+        document.getElementById('averageUtilization').textContent = avgUtilization + '%';
+
+        // Generate polyclinic report
+        generatePolyclinicReport(filteredVisits);
+        
+        // Generate doctor report
+        generateDoctorReport(filteredVisits);
+        
+        // Generate detailed visit table
+        generateVisitTable(filteredVisits);
+
+        console.log(`Generated ${reportType} report for ${dateRange.label}: ${totalVisits} visits`);
+    };
+
+    // Generate polyclinic service report
+    window.generatePolyclinicServiceReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const selectedDate = document.getElementById('reportDate').value;
+        
+        if (!selectedDate) {
+            alert('Silakan pilih tanggal terlebih dahulu');
+            return;
+        }
+
+        const dateRange = getDateRange(reportType, selectedDate);
+        const filteredVisits = filterVisitsByDateRange(dateRange.start, dateRange.end);
+        
+        generatePolyclinicReport(filteredVisits);
+        console.log(`Generated polyclinic service report for ${dateRange.label}`);
+    };
+
+    // Generate schedule service report
+    window.generateScheduleServiceReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const selectedDate = document.getElementById('reportDate').value;
+        
+        if (!selectedDate) {
+            alert('Silakan pilih tanggal terlebih dahulu');
+            return;
+        }
+
+        const dateRange = getDateRange(reportType, selectedDate);
+        const filteredVisits = filterVisitsByDateRange(dateRange.start, dateRange.end);
+        
+        generateDoctorReport(filteredVisits);
+        console.log(`Generated schedule service report for ${dateRange.label}`);
+    };
+
+    // Generate polyclinic breakdown report
+    function generatePolyclinicReport(visits) {
+        const polyclinicReport = document.getElementById('polyclinicReport');
+        if (!polyclinicReport) return;
+
+        // Count visits by polyclinic
+        const polyclinicData = {};
+        const polyclinicSchedules = {};
+        
+        visits.forEach(visit => {
+            if (visit.polyclinic) {
+                polyclinicData[visit.polyclinic] = (polyclinicData[visit.polyclinic] || 0) + 1;
+            }
+        });
+
+        // Count schedules by polyclinic for utilization calculation
+        doctorSchedules.forEach(schedule => {
+            if (schedule.polyclinic) {
+                if (!polyclinicSchedules[schedule.polyclinic]) {
+                    polyclinicSchedules[schedule.polyclinic] = { quota: 0, registered: 0 };
+                }
+                polyclinicSchedules[schedule.polyclinic].quota += schedule.quota || 0;
+                polyclinicSchedules[schedule.polyclinic].registered += schedule.registered || 0;
+            }
+        });
+
+        const totalVisits = visits.length;
+        let reportHTML = '';
+
+        Object.entries(polyclinicData).forEach(([polyclinic, count]) => {
+            const percentage = totalVisits > 0 ? ((count / totalVisits) * 100).toFixed(1) : 0;
+            const scheduleData = polyclinicSchedules[polyclinic] || { quota: 0, registered: 0 };
+            const utilization = scheduleData.quota > 0 ? 
+                ((scheduleData.registered / scheduleData.quota) * 100).toFixed(1) : 0;
+
+            reportHTML += `
+                <div class="flex justify-between items-center p-2 bg-white rounded border">
+                    <div class="flex-1">
+                        <span class="font-medium text-gray-800">${polyclinic}</span>
+                        <div class="text-xs text-gray-500">
+                            ${count} kunjungan (${percentage}%) • Utilisasi: ${utilization}%
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-bold text-blue-600">${count}</div>
+                        <div class="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (reportHTML === '') {
+            reportHTML = '<p class="text-gray-500 text-center p-4">Tidak ada data kunjungan</p>';
+        }
+
+        polyclinicReport.innerHTML = reportHTML;
+    }
+
+    // Generate doctor breakdown report
+    function generateDoctorReport(visits) {
+        const doctorReport = document.getElementById('doctorReport');
+        if (!doctorReport) return;
+
+        // Count visits by doctor
+        const doctorData = {};
+        const doctorScheduleData = {};
+        
+        visits.forEach(visit => {
+            if (visit.doctorName) {
+                doctorData[visit.doctorName] = (doctorData[visit.doctorName] || 0) + 1;
+            }
+        });
+
+        // Get schedule data for each doctor
+        doctorSchedules.forEach(schedule => {
+            if (schedule.doctorName) {
+                if (!doctorScheduleData[schedule.doctorName]) {
+                    doctorScheduleData[schedule.doctorName] = { 
+                        quota: 0, 
+                        registered: 0,
+                        polyclinic: schedule.polyclinic || '-'
+                    };
+                }
+                doctorScheduleData[schedule.doctorName].quota += schedule.quota || 0;
+                doctorScheduleData[schedule.doctorName].registered += schedule.registered || 0;
+            }
+        });
+
+        const totalVisits = visits.length;
+        let reportHTML = '';
+
+        Object.entries(doctorData).forEach(([doctorName, count]) => {
+            const percentage = totalVisits > 0 ? ((count / totalVisits) * 100).toFixed(1) : 0;
+            const scheduleData = doctorScheduleData[doctorName] || { quota: 0, registered: 0, polyclinic: '-' };
+            const utilization = scheduleData.quota > 0 ? 
+                ((scheduleData.registered / scheduleData.quota) * 100).toFixed(1) : 0;
+
+            reportHTML += `
+                <div class="flex justify-between items-center p-2 bg-white rounded border">
+                    <div class="flex-1">
+                        <span class="font-medium text-gray-800">${doctorName}</span>
+                        <div class="text-xs text-gray-500">
+                            ${scheduleData.polyclinic} • ${count} kunjungan (${percentage}%) • Utilisasi: ${utilization}%
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-bold text-green-600">${count}</div>
+                        <div class="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div class="bg-green-600 h-1.5 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (reportHTML === '') {
+            reportHTML = '<p class="text-gray-500 text-center p-4">Tidak ada data kunjungan</p>';
+        }
+
+        doctorReport.innerHTML = reportHTML;
+    }
+
+    // Generate detailed visit table
+    function generateVisitTable(visits) {
+        const visitTableBody = document.getElementById('visitTableBody');
+        if (!visitTableBody) return;
+
+        let tableHTML = '';
+
+        // Sort visits by date and time
+        const sortedVisits = visits.sort((a, b) => {
+            const dateA = new Date(a.visitDate + ' ' + (a.visitTime || '00:00'));
+            const dateB = new Date(b.visitDate + ' ' + (b.visitTime || '00:00'));
+            return dateB - dateA; // Most recent first
+        });
+
+        sortedVisits.forEach(visit => {
+            const statusClass = visit.status === 'Selesai' ? 'status-completed' :
+                               visit.status === 'Sedang Dilayani' ? 'status-in-progress' :
+                               visit.status === 'Menunggu' ? 'status-waiting' : 'status-scheduled';
+
+            tableHTML += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm">${new Date(visit.visitDate).toLocaleDateString('id-ID')}</td>
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm">${visit.visitTime || '-'}</td>
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm font-medium">${visit.patientName || '-'}</td>
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm">${visit.doctorName || '-'}</td>
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm">${visit.polyclinic || '-'}</td>
+                    <td class="px-2 md:px-4 py-2">
+                        <span class="status-badge ${statusClass}">${visit.status || 'Terjadwal'}</span>
+                    </td>
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-center">${visit.queueNumber || '-'}</td>
+                </tr>
+            `;
+        });
+
+        if (tableHTML === '') {
+            tableHTML = `
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                        Tidak ada data kunjungan untuk periode yang dipilih
+                    </td>
+                </tr>
+            `;
+        }
+
+        visitTableBody.innerHTML = tableHTML;
+    }
+
+    // Export visit report to CSV
+    window.exportVisitReport = () => {
+        const reportType = document.getElementById('reportType').value;
+        const selectedDate = document.getElementById('reportDate').value;
+        
+        if (!selectedDate) {
+            alert('Silakan pilih tanggal terlebih dahulu');
+            return;
+        }
+
+        const dateRange = getDateRange(reportType, selectedDate);
+        const filteredVisits = filterVisitsByDateRange(dateRange.start, dateRange.end);
+        
+        if (filteredVisits.length === 0) {
+            alert('Tidak ada data untuk diekspor');
+            return;
+        }
+
+        // Create CSV content
+        const headers = ['Tanggal', 'Waktu', 'Pasien', 'Dokter', 'Poliklinik', 'Status', 'No. Antrian'];
+        let csvContent = headers.join(',') + '\n';
+        
+        filteredVisits.forEach(visit => {
+            const row = [
+                visit.visitDate || '',
+                visit.visitTime || '',
+                `"${visit.patientName || ''}"`,
+                `"${visit.doctorName || ''}"`,
+                `"${visit.polyclinic || ''}"`,
+                `"${visit.status || 'Terjadwal'}"`,
+                visit.queueNumber || ''
+            ];
+            csvContent += row.join(',') + '\n';
+        });
+
+        // Download CSV file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `laporan_kunjungan_${reportType}_${selectedDate}.csv`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        console.log(`Exported ${filteredVisits.length} visit records to CSV`);
+    };
+
+    // Generate random mock data
+    window.generateRandomData = () => {
+        if (!confirm('Ini akan menambahkan 60+ data kunjungan acak. Lanjutkan?')) {
+            return;
+        }
+
+        const indonesianNames = [
+            'Siti Nurhaliza', 'Budi Santoso', 'Dewi Sartika', 'Ahmad Fauzi', 'Sri Wahyuni',
+            'Muhammad Iqbal', 'Ratna Sari', 'Hendra Gunawan', 'Aisyah Putri', 'Rizky Ramadan',
+            'Indira Kartika', 'Bambang Wijaya', 'Maya Sari', 'Doni Pratama', 'Sari Wulandari',
+            'Andi Setiawan', 'Fitri Handayani', 'Rudi Hermawan', 'Lestari Ningrum', 'Yoga Pratama'
+        ];
+
+        const statuses = ['Selesai', 'Sedang Dilayani', 'Menunggu', 'Terjadwal'];
+        const polyclinics = ['Poli Umum', 'Poli Gigi', 'Poli Anak', 'Poli Jantung', 'Poli Mata'];
+        const doctorNames = ['Dr. Ahmad Yani', 'Dr. Siti Aminah', 'Dr. Budi Santoso', 'Dr. Maya Sari', 'Dr. Rizky Fauzi'];
+
+        // Generate visits for the last 30 days
+        const newVisits = [];
+        const today = new Date();
+        
+        for (let i = 0; i < 65; i++) {
+            const visitDate = new Date(today);
+            visitDate.setDate(today.getDate() - Math.floor(Math.random() * 30));
+            
+            const visit = {
+                id: Date.now() + i,
+                patientId: Math.floor(Math.random() * 1000) + 1,
+                patientName: indonesianNames[Math.floor(Math.random() * indonesianNames.length)],
+                doctorName: doctorNames[Math.floor(Math.random() * doctorNames.length)],
+                polyclinic: polyclinics[Math.floor(Math.random() * polyclinics.length)],
+                visitDate: visitDate.toISOString().split('T')[0],
+                visitTime: `${String(Math.floor(Math.random() * 8) + 8).padStart(2, '0')}:${String(Math.floor(Math.random() * 6) * 10).padStart(2, '0')}`,
+                status: statuses[Math.floor(Math.random() * statuses.length)],
+                queueNumber: Math.floor(Math.random() * 50) + 1
+            };
+            
+            newVisits.push(visit);
+        }
+
+        // Add new visits to existing data
+        patientVisits.push(...newVisits);
+        
+        // Update all displays
+        updateStatistics();
+        
+        alert(`Berhasil menambahkan ${newVisits.length} data kunjungan acak!`);
+        console.log(`Generated ${newVisits.length} random visit records`);
+    };
+
+    // Reset mock data to original state
+    window.resetMockData = () => {
+        if (!confirm('Ini akan mereset semua data ke kondisi awal. Lanjutkan?')) {
+            return;
+        }
+
+        // Reload original mock data
+        loadMockData().then(() => {
+            updateStatistics();
+            alert('Data berhasil direset ke kondisi awal!');
+            console.log('Mock data reset to original state');
+        });
+    };
+
+    // Auto-generate initial report on page load
+    setTimeout(() => {
+        if (document.getElementById('reportDate').value) {
+            generateVisitReport();
+        }
+    }, 1000);
+
+    // --- PATIENT MANAGEMENT FUNCTIONS ---
+    
+    window.viewPatientDetails = (patientId) => {
+        const patient = patients.find(p => p.id === patientId);
+        if (!patient) {
+            alert('Data pasien tidak ditemukan');
+            return;
+        }
+
+        const patientVisits = patientVisits.filter(v => v.patientId === patientId);
+        const visitCount = patientVisits.length;
+        const lastVisit = patientVisits.length > 0 ? 
+            patientVisits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate))[0] : null;
+
+        const content = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.name || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">NIK</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.nik || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Jenis Kelamin</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.gender || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.birthDate || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">No. Telepon</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.phone || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.email || '-'}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Alamat</label>
+                        <p class="mt-1 text-sm text-gray-900">${patient.address || '-'}</p>
+                    </div>
+                </div>
+                <div class="border-t pt-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Statistik Kunjungan</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Total Kunjungan:</span>
+                            <span class="font-medium ml-2">${visitCount}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Kunjungan Terakhir:</span>
+                            <span class="font-medium ml-2">${lastVisit ? new Date(lastVisit.visitDate).toLocaleDateString('id-ID') : 'Belum ada'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        window.openAdminModal('Detail Pasien', content);
+    };
+
+    window.editPatient = (patientId) => {
+        const patient = patients.find(p => p.id === patientId);
+        if (!patient) {
+            alert('Data pasien tidak ditemukan');
+            return;
+        }
+
+        const content = `
+            <form id="editPatientForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                        <input type="text" id="editPatientName" value="${patient.name || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">NIK</label>
+                        <input type="text" id="editPatientNik" value="${patient.nik || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Jenis Kelamin</label>
+                        <select id="editPatientGender" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="Laki-laki" ${patient.gender === 'Laki-laki' ? 'selected' : ''}>Laki-laki</option>
+                            <option value="Perempuan" ${patient.gender === 'Perempuan' ? 'selected' : ''}>Perempuan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
+                        <input type="date" id="editPatientBirthDate" value="${patient.birthDate || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">No. Telepon</label>
+                        <input type="tel" id="editPatientPhone" value="${patient.phone || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="editPatientEmail" value="${patient.email || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Alamat</label>
+                        <textarea id="editPatientAddress" rows="3" 
+                                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">${patient.address || ''}</textarea>
+                    </div>
+                </div>
+            </form>
+        `;
+
+        const footerButtons = `
+            <button onclick="savePatientEdit(${patientId})" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Simpan</button>
+            <button onclick="closeAdminModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">Batal</button>
+        `;
+
+        window.openAdminModal('Edit Pasien', content, footerButtons);
+    };
+
+    window.savePatientEdit = (patientId) => {
+        const patient = patients.find(p => p.id === patientId);
+        if (!patient) return;
+
+        // Get form data
+        const name = document.getElementById('editPatientName').value.trim();
+        const nik = document.getElementById('editPatientNik').value.trim();
+        const gender = document.getElementById('editPatientGender').value;
+        const birthDate = document.getElementById('editPatientBirthDate').value;
+        const phone = document.getElementById('editPatientPhone').value.trim();
+        const email = document.getElementById('editPatientEmail').value.trim();
+        const address = document.getElementById('editPatientAddress').value.trim();
+
+        if (!name || !nik) {
+            alert('Nama dan NIK harus diisi');
+            return;
+        }
+
+        // Update patient data
+        patient.name = name;
+        patient.nik = nik;
+        patient.gender = gender;
+        patient.birthDate = birthDate;
+        patient.phone = phone;
+        patient.email = email;
+        patient.address = address;
+
+        // Re-render patient list
+        renderPatientList();
+        updateStatistics();
+        
+        window.closeAdminModal();
+        alert('Data pasien berhasil diperbarui');
+    };
+
+    window.confirmDeletePatient = (patientId) => {
+        const patient = patients.find(p => p.id === patientId);
+        if (!patient) return;
+
+        if (confirm(`Apakah Anda yakin ingin menghapus data pasien "${patient.name}"?`)) {
+            // Remove patient from array
+            patients = patients.filter(p => p.id !== patientId);
+            
+            // Remove related visits
+            patientVisits = patientVisits.filter(v => v.patientId !== patientId);
+            
+            // Re-render lists and update stats
+            renderPatientList();
+            updateStatistics();
+            
+            alert('Data pasien berhasil dihapus');
+        }
+    };
+
+    // --- DOCTOR SCHEDULE MANAGEMENT FUNCTIONS ---
+    
+    window.viewDoctorScheduleDetails = (scheduleId) => {
+        const schedule = doctorSchedules.find(s => s.id === scheduleId);
+        if (!schedule) {
+            alert('Data jadwal tidak ditemukan');
+            return;
+        }
+
+        const scheduleVisits = patientVisits.filter(v => 
+            v.doctorName === schedule.doctorName && v.polyclinic === schedule.polyclinic
+        );
+        const utilization = schedule.quota > 0 ? ((schedule.registered / schedule.quota) * 100).toFixed(1) : 0;
+
+        const content = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nama Dokter</label>
+                        <p class="mt-1 text-sm text-gray-900">${schedule.doctorName || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Poliklinik</label>
+                        <p class="mt-1 text-sm text-gray-900">${schedule.polyclinic || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Hari</label>
+                        <p class="mt-1 text-sm text-gray-900">${schedule.day || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Waktu</label>
+                        <p class="mt-1 text-sm text-gray-900">${schedule.time || '-'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Kuota</label>
+                        <p class="mt-1 text-sm text-gray-900">${schedule.quota || 0}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Terdaftar</label>
+                        <p class="mt-1 text-sm text-gray-900">${schedule.registered || 0}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <p class="mt-1 text-sm text-gray-900">
+                            <span class="px-2 py-1 text-xs rounded-full ${schedule.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${schedule.isActive ? 'Aktif' : 'Non-aktif'}
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Utilisasi</label>
+                        <p class="mt-1 text-sm text-gray-900">${utilization}%</p>
+                    </div>
+                </div>
+                <div class="border-t pt-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Statistik Kunjungan</h4>
+                    <div class="text-sm text-gray-600">
+                        Total kunjungan terkait jadwal ini: <span class="font-medium">${scheduleVisits.length}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        window.openAdminModal('Detail Jadwal Dokter', content);
+    };
+
+    window.editDoctorSchedule = (scheduleId) => {
+        const schedule = doctorSchedules.find(s => s.id === scheduleId);
+        if (!schedule) {
+            alert('Data jadwal tidak ditemukan');
+            return;
+        }
+
+        const content = `
+            <form id="editScheduleForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nama Dokter</label>
+                        <input type="text" id="editScheduleDoctorName" value="${schedule.doctorName || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Poliklinik</label>
+                        <input type="text" id="editSchedulePolyclinic" value="${schedule.polyclinic || ''}" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Hari</label>
+                        <select id="editScheduleDay" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="Senin" ${schedule.day === 'Senin' ? 'selected' : ''}>Senin</option>
+                            <option value="Selasa" ${schedule.day === 'Selasa' ? 'selected' : ''}>Selasa</option>
+                            <option value="Rabu" ${schedule.day === 'Rabu' ? 'selected' : ''}>Rabu</option>
+                            <option value="Kamis" ${schedule.day === 'Kamis' ? 'selected' : ''}>Kamis</option>
+                            <option value="Jumat" ${schedule.day === 'Jumat' ? 'selected' : ''}>Jumat</option>
+                            <option value="Sabtu" ${schedule.day === 'Sabtu' ? 'selected' : ''}>Sabtu</option>
+                            <option value="Minggu" ${schedule.day === 'Minggu' ? 'selected' : ''}>Minggu</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Waktu</label>
+                        <input type="text" id="editScheduleTime" value="${schedule.time || ''}" 
+                               placeholder="08:00-12:00" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Kuota</label>
+                        <input type="number" id="editScheduleQuota" value="${schedule.quota || 0}" min="1" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Terdaftar</label>
+                        <input type="number" id="editScheduleRegistered" value="${schedule.registered || 0}" min="0" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="editScheduleActive" ${schedule.isActive ? 'checked' : ''} 
+                                   class="mr-2">
+                            <span class="text-sm font-medium text-gray-700">Jadwal Aktif</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        `;
+
+        const footerButtons = `
+            <button onclick="saveDoctorScheduleEdit(${scheduleId})" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Simpan</button>
+            <button onclick="closeAdminModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">Batal</button>
+        `;
+
+        window.openAdminModal('Edit Jadwal Dokter', content, footerButtons);
+    };
+
+    window.saveDoctorScheduleEdit = (scheduleId) => {
+        const schedule = doctorSchedules.find(s => s.id === scheduleId);
+        if (!schedule) return;
+
+        // Get form data
+        const doctorName = document.getElementById('editScheduleDoctorName').value.trim();
+        const polyclinic = document.getElementById('editSchedulePolyclinic').value.trim();
+        const day = document.getElementById('editScheduleDay').value;
+        const time = document.getElementById('editScheduleTime').value.trim();
+        const quota = parseInt(document.getElementById('editScheduleQuota').value);
+        const registered = parseInt(document.getElementById('editScheduleRegistered').value);
+        const isActive = document.getElementById('editScheduleActive').checked;
+
+        if (!doctorName || !polyclinic || !day || !time || quota < 1) {
+            alert('Semua field harus diisi dengan benar');
+            return;
+        }
+
+        if (registered > quota) {
+            alert('Jumlah terdaftar tidak boleh melebihi kuota');
+            return;
+        }
+
+        // Update schedule data
+        schedule.doctorName = doctorName;
+        schedule.polyclinic = polyclinic;
+        schedule.day = day;
+        schedule.time = time;
+        schedule.quota = quota;
+        schedule.registered = registered;
+        schedule.isActive = isActive;
+
+        // Re-render schedule list
+        renderDoctorScheduleList();
+        updateStatistics();
+        
+        window.closeAdminModal();
+        alert('Jadwal dokter berhasil diperbarui');
+    };
+
+    window.confirmDeleteDoctorSchedule = (scheduleId) => {
+        const schedule = doctorSchedules.find(s => s.id === scheduleId);
+        if (!schedule) return;
+
+        if (confirm(`Apakah Anda yakin ingin menghapus jadwal "${schedule.doctorName}" di ${schedule.polyclinic}?`)) {
+            // Remove schedule from array
+            doctorSchedules = doctorSchedules.filter(s => s.id !== scheduleId);
+            
+            // Re-render lists and update stats
+            renderDoctorScheduleList();
+            updateStatistics();
+            
+            alert('Jadwal dokter berhasil dihapus');
+        }
+    };
 });
