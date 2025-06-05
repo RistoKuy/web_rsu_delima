@@ -1,5 +1,5 @@
 // Doctor Dashboard Script
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // DOM elements
     const appointmentsList = document.getElementById('appointmentsList');
     const schedulesList = document.getElementById('schedulesList');
@@ -42,144 +42,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = '../index.html';
             }
         });
-    }    // --- Sample Data for Doctor Dashboard ---
-    let appointments = [
-        { 
-            id: 1, 
-            patientName: 'Budi Santoso', 
-            patientPhone: '081234567890',
-            date: '2025-06-01', 
-            time: '09:00', 
-            polyclinic: 'Umum',
-            complaint: 'Demam dan batuk',
-            status: 'Menunggu',
-            doctorId: 1
-        },
-        { 
-            id: 2, 
-            patientName: 'Ani Lestari', 
-            patientPhone: '087654321098',
-            date: '2025-06-01', 
-            time: '10:00', 
-            polyclinic: 'Umum',
-            complaint: 'Sakit kepala',
-            status: 'Dikonfirmasi',
-            doctorId: 1
-        },
-        { 
-            id: 3, 
-            patientName: 'Sari Dewi', 
-            patientPhone: '081345678901',
-            date: '2025-06-02', 
-            time: '14:00', 
-            polyclinic: 'Umum',
-            complaint: 'Kontrol rutin',
-            status: 'Menunggu',
-            doctorId: 1
-        },
-        { 
-            id: 4, 
-            patientName: 'Ahmad Fauzi', 
-            patientPhone: '082345678901',
-            date: '2025-06-03', 
-            time: '09:30', 
-            polyclinic: 'Umum',
-            complaint: 'Nyeri punggung',
-            status: 'Menunggu',
-            doctorId: 1
-        },
-        { 
-            id: 5, 
-            patientName: 'Maya Sari', 
-            patientPhone: '083456789012',
-            date: '2025-06-01', 
-            time: '11:00', 
-            polyclinic: 'Umum',
-            complaint: 'Pusing dan mual',
-            status: 'Dibatalkan',
-            doctorId: 1
+    }
+
+    // Global variables for mock data
+    let appointments = [];
+    let doctorSchedules = [];
+
+    // Load mock data from JSON file
+    async function loadMockData() {
+        try {
+            const response = await fetch('../assets/mockData.json');
+            const data = await response.json();
+            
+            appointments = data.appointments || [];
+            doctorSchedules = data.doctorSchedules || [];
+            
+            console.log('Mock data loaded successfully for doctor');
+        } catch (error) {
+            console.error('Error loading mock data:', error);
         }
-    ];    let doctorSchedules = [
-        { 
-            id: 1, 
-            doctorId: 1,
-            doctorName: 'Dr. Ahmad Subarjo', 
-            polyclinic: 'Umum', 
-            day: 'Senin', 
-            time: '09:00 - 12:00', 
-            quota: 20, 
-            registered: 15,
-            isActive: true,
-            weekNumber: getCurrentWeek(),
-            year: new Date().getFullYear()
-        },
-        { 
-            id: 2, 
-            doctorId: 1,
-            doctorName: 'Dr. Ahmad Subarjo', 
-            polyclinic: 'Umum', 
-            day: 'Rabu', 
-            time: '14:00 - 17:00', 
-            quota: 15, 
-            registered: 10,
-            isActive: true,
-            weekNumber: getCurrentWeek(),
-            year: new Date().getFullYear()
-        },
-        { 
-            id: 3, 
-            doctorId: 1,
-            doctorName: 'Dr. Ahmad Subarjo', 
-            polyclinic: 'Umum', 
-            day: 'Jumat', 
-            time: '10:00 - 13:00', 
-            quota: 18, 
-            registered: 5,
-            isActive: true,
-            weekNumber: getCurrentWeek(),
-            year: new Date().getFullYear()
-        },
-        { 
-            id: 4, 
-            doctorId: 1,
-            doctorName: 'Dr. Ahmad Subarjo', 
-            polyclinic: 'Umum', 
-            day: 'Sabtu', 
-            time: '08:00 - 11:00', 
-            quota: 12, 
-            registered: 8,
-            isActive: true,
-            weekNumber: getCurrentWeek(),
-            year: new Date().getFullYear()
-        },
-        // Next week schedules
-        { 
-            id: 5, 
-            doctorId: 1,
-            doctorName: 'Dr. Ahmad Subarjo', 
-            polyclinic: 'Umum', 
-            day: 'Senin', 
-            time: '09:00 - 12:00', 
-            quota: 20, 
-            registered: 3,
-            isActive: true,
-            weekNumber: getCurrentWeek() + 1,
-            year: new Date().getFullYear()
-        },
-        { 
-            id: 6, 
-            doctorId: 1,
-            doctorName: 'Dr. Ahmad Subarjo', 
-            polyclinic: 'Umum', 
-            day: 'Rabu', 
-            time: '14:00 - 17:00', 
-            quota: 15, 
-            registered: 0,
-            isActive: true,
-            weekNumber: getCurrentWeek() + 1,
-            year: new Date().getFullYear()
-        }
-    ];    // --- Utility Functions ---
+    }    // Load data before initializing the application
+    await loadMockData();
+
+    // --- Utility Functions ---
     function getCurrentWeek() {
         const now = new Date();
         const startOfYear = new Date(now.getFullYear(), 0, 1);

@@ -49,154 +49,28 @@ function setUserType(type) {
     }
 }
 
-// Mock Data
-let mockData = {    users: [        {
-            id: 1,
-            name: "John Doe",
-            username: "johndoe",
-            email: "john@example.com",
-            password: "password123",
-            dob: "1990-01-15",
-            address: "123 Main Street, Jakarta",
-            phone: "+62812345678",
-            gender: "male",
-            bpjs: "0001234567890"
-        },
-        {
-            id: 2,
-            name: "Jane Smith",
-            username: "janesmith",
-            email: "jane@example.com",
-            password: "password123",
-            dob: "1992-03-22",
-            address: "456 Oak Avenue, Jakarta",
-            phone: "+62812345679",
-            gender: "female",
-            bpjs: "0001234567891"
-        },
-        {
-            id: 3,
-            name: "Ahmad Rahman",
-            username: "ahmad",
-            email: "ahmad@example.com",
-            password: "password123",
-            dob: "1988-07-10",
-            address: "789 Pine Street, Jakarta",
-            phone: "+62812345680",
-            gender: "male",
-            bpjs: "0001234567892"
-        }
-    ],polyclinics: [
-        {
-            id: 1,
-            name: "Poli Umum",
-            description: "Layanan kesehatan primer untuk kondisi medis umum",
-            icon: "🩺"
-        },
-        {
-            id: 2,
-            name: "Kardiologi",
-            description: "Spesialis jantung dan sistem kardiovaskular",
-            icon: "❤️"
-        },
-        {
-            id: 3,
-            name: "Anak",
-            description: "Perawatan medis untuk bayi, anak-anak, dan remaja",
-            icon: "👶"
-        },
-        {
-            id: 4,
-            name: "Ortopedi",
-            description: "Perawatan tulang, sendi, dan sistem muskuloskeletal",
-            icon: "🦴"
-        },
-        {
-            id: 5,
-            name: "Kulit dan Kelamin",
-            description: "Perawatan kondisi kulit, rambut, dan kuku",
-            icon: "🧴"
-        },
-        {
-            id: 6,
-            name: "Mata",
-            description: "Spesialis perawatan mata dan penglihatan",
-            icon: "👁️"
-        }
-    ],
-    doctors: [        {
-            id: 1,
-            name: "Dr. Sarah Johnson",
-            specialty: "Dokter Umum",
-            polyclinicId: 1,
-            bio: "Dokter umum berpengalaman dengan 10+ tahun dalam kedokteran keluarga.",
-            schedule: {
-                monday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
-                tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
-                wednesday: ["09:00", "10:00", "11:00"],
-                thursday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
-                friday: ["09:00", "10:00", "11:00", "14:00", "15:00"]
-            }
-        },        {
-            id: 2,
-            name: "Dr. Michael Chen",
-            specialty: "Dokter Spesialis Jantung",
-            polyclinicId: 2,
-            bio: "Dokter spesialis jantung bersertifikat yang mengkhususkan diri dalam pencegahan dan pengobatan penyakit jantung.",
-            schedule: {
-                monday: ["10:00", "11:00", "14:00", "15:00", "16:00"],
-                wednesday: ["10:00", "11:00", "14:00", "15:00"],
-                friday: ["10:00", "11:00", "14:00", "15:00", "16:00"]
-            }
-        },        {
-            id: 3,
-            name: "Dr. Emily Rodriguez",
-            specialty: "Dokter Spesialis Anak",
-            polyclinicId: 3,
-            bio: "Dokter anak yang berdedikasi dengan keahlian dalam perkembangan anak dan perawatan pediatrik.",
-            schedule: {
-                tuesday: ["09:00", "10:00", "11:00", "14:00"],
-                thursday: ["09:00", "10:00", "11:00", "14:00"],
-                saturday: ["09:00", "10:00", "11:00"]
-            }
-        },        {
-            id: 4,
-            name: "Dr. Robert Wilson",
-            specialty: "Dokter Bedah Ortopedi",
-            polyclinicId: 4,
-            bio: "Dokter bedah ortopedi berpengalaman yang mengkhususkan diri dalam penggantian sendi dan kedokteran olahraga.",
-            schedule: {
-                monday: ["08:00", "09:00", "10:00", "14:00"],
-                wednesday: ["08:00", "09:00", "10:00", "14:00"],
-                friday: ["08:00", "09:00", "10:00"]
-            }
-        },        {
-            id: 5,
-            name: "Dr. Lisa Thompson",
-            specialty: "Dokter Spesialis Kulit dan Kelamin",
-            polyclinicId: 5,
-            bio: "Dokter spesialis kulit dan kelamin dengan keahlian dalam deteksi kanker kulit dan prosedur kosmetik.",
-            schedule: {
-                tuesday: ["10:00", "11:00", "14:00", "15:00"],
-                thursday: ["10:00", "11:00", "14:00", "15:00"],
-                saturday: ["10:00", "11:00"]
-            }
-        },
-        {
-            id: 6,
-            name: "Dr. David Kim",
-            specialty: "Dokter Spesialis Mata",
-            polyclinicId: 6,
-            bio: "Dokter spesialis mata dengan pelatihan lanjutan dalam penyakit retina dan operasi katarak.",
-            schedule: {
-                monday: ["09:00", "10:00", "11:00", "15:00"],
-                wednesday: ["09:00", "10:00", "11:00", "15:00"],
-                friday: ["09:00", "10:00", "11:00"]
-            }
-        }
-    ],
-    appointments: []
+// Mock Data - loaded from JSON file
+let mockData = {
+    users: [],
+    patients: [],
+    polyclinics: [],
+    doctors: [],
+    appointments: [],
+    doctorSchedules: [],
+    patientVisits: []
 };
+
+// Load mock data from JSON file
+async function loadMockData() {
+    try {
+        const response = await fetch('./assets/mockData.json');
+        const data = await response.json();
+        mockData = { ...mockData, ...data };
+        console.log('Mock data loaded successfully');
+    } catch (error) {
+        console.error('Error loading mock data:', error);
+    }
+}
 
 // Average consultation time in minutes
 const AVG_CONSULTATION_MINUTES = 15;
@@ -273,7 +147,10 @@ function calculateEstimatedWaitTime(doctorId, appointmentDate, appointmentTime) 
 
 
 // Initialize Application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load mock data first
+    await loadMockData();
+    
     // Show loading screen briefly
     setTimeout(() => {
         document.getElementById('loadingView').style.display = 'none';

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const patientList = document.getElementById('patientList');
     const doctorScheduleList = document.getElementById('doctorScheduleList');
     const adminModal = document.getElementById('adminModal');
@@ -19,76 +19,33 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionStorage.removeItem('userRole');
             sessionStorage.removeItem('userData');
             window.location.href = '../index.html';
-        });
-    }    // --- Sample Data (Replace with API calls in a real application) ---
-    let patients = [
-        { id: 1, name: 'Budi Santoso', nik: '3201011234560001', address: 'Jl. Merdeka No. 10, Jakarta', phone: '081234567890', birthDate: '1985-07-15', gender: 'Laki-laki' },
-        { id: 2, name: 'Ani Lestari', nik: '3201022345670002', address: 'Jl. Sudirman No. 25, Bandung', phone: '087654321098', birthDate: '1990-03-22', gender: 'Perempuan' },
-        { id: 3, name: 'Sari Dewi', nik: '3201033456780003', address: 'Jl. Ahmad Yani No. 15, Surabaya', phone: '081345678901', birthDate: '1988-11-08', gender: 'Perempuan' },
-        { id: 4, name: 'Ahmad Fauzi', nik: '3201044567890004', address: 'Jl. Diponegoro No. 5, Yogyakarta', phone: '082345678901', birthDate: '1992-05-12', gender: 'Laki-laki' },
-        { id: 5, name: 'Maya Sari', nik: '3201055678901005', address: 'Jl. Veteran No. 20, Medan', phone: '083456789012', birthDate: '1987-09-30', gender: 'Perempuan' },
-    ];
+        });    }    
+    
+    // Global variables for mock data
+    let patients = [];
+    let doctorSchedules = [];
+    let patientVisits = [];
+    let detailedSchedules = [];
 
-    let doctorSchedules = [
-        { id: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', day: 'Senin', time: '09:00 - 12:00', quota: 20, registered: 15 },
-        { id: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', day: 'Selasa', time: '14:00 - 17:00', quota: 15, registered: 10 },
-        { id: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', day: 'Rabu', time: '10:00 - 13:00', quota: 10, registered: 5 },
-        { id: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', day: 'Kamis', time: '08:00 - 11:00', quota: 25, registered: 20 },
-        { id: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', day: 'Jumat', time: '13:00 - 16:00', quota: 12, registered: 8 },
-        { id: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', day: 'Sabtu', time: '09:00 - 12:00', quota: 18, registered: 12 },
-    ];
+    // Load mock data from JSON file
+    async function loadMockData() {
+        try {
+            const response = await fetch('../assets/mockData.json');
+            const data = await response.json();
+            
+            patients = data.patients || [];
+            doctorSchedules = data.doctorSchedules || [];
+            patientVisits = data.patientVisits || [];
+            detailedSchedules = data.detailedSchedules || [];
+            
+            console.log('Mock data loaded successfully for admin');
+        } catch (error) {
+            console.error('Error loading mock data:', error);
+        }
+    }
 
-    // Sample visit data for reports
-    let patientVisits = [
-        // Data Juni 2025 - Minggu ini
-        { id: 1, patientId: 1, patientName: 'Budi Santoso', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-06-02', visitTime: '09:15', status: 'Selesai', queueNumber: 'A001', scheduleId: 1 },
-        { id: 2, patientId: 2, patientName: 'Ani Lestari', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-06-02', visitTime: '14:30', status: 'Selesai', queueNumber: 'B001', scheduleId: 2 },
-        { id: 3, patientId: 3, patientName: 'Sari Dewi', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-06-02', visitTime: '10:45', status: 'Sedang Dilayani', queueNumber: 'C001', scheduleId: 3 },
-        { id: 4, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-06-02', visitTime: '10:00', status: 'Selesai', queueNumber: 'A002', scheduleId: 1 },
-        { id: 5, patientId: 5, patientName: 'Maya Sari', doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', visitDate: '2025-06-02', visitTime: '08:30', status: 'Selesai', queueNumber: 'A003', scheduleId: 4 },
-        
-        // Data hari kemarin (1 Juni 2025)
-        { id: 6, patientId: 1, patientName: 'Budi Santoso', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-06-01', visitTime: '14:15', status: 'Selesai', queueNumber: 'B002', scheduleId: 2 },
-        { id: 7, patientId: 2, patientName: 'Ani Lestari', doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', visitDate: '2025-06-01', visitTime: '13:20', status: 'Selesai', queueNumber: 'D001', scheduleId: 5 },
-        { id: 8, patientId: 3, patientName: 'Sari Dewi', doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', visitDate: '2025-06-01', visitTime: '09:45', status: 'Selesai', queueNumber: 'B003', scheduleId: 6 },
-        { id: 9, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-06-01', visitTime: '11:30', status: 'Selesai', queueNumber: 'C002', scheduleId: 3 },
-        { id: 10, patientId: 5, patientName: 'Maya Sari', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-06-01', visitTime: '09:30', status: 'Selesai', queueNumber: 'A004', scheduleId: 1 },
-        
-        // Data minggu lalu (26-31 Mei 2025)
-        { id: 11, patientId: 1, patientName: 'Budi Santoso', doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', visitDate: '2025-05-31', visitTime: '08:15', status: 'Selesai', queueNumber: 'A005', scheduleId: 4 },
-        { id: 12, patientId: 2, patientName: 'Ani Lestari', doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', visitDate: '2025-05-31', visitTime: '10:30', status: 'Selesai', queueNumber: 'B004', scheduleId: 6 },
-        { id: 13, patientId: 3, patientName: 'Sari Dewi', doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', visitDate: '2025-05-30', visitTime: '14:45', status: 'Selesai', queueNumber: 'D002', scheduleId: 5 },
-        { id: 14, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-05-30', visitTime: '16:00', status: 'Selesai', queueNumber: 'B005', scheduleId: 2 },
-        { id: 15, patientId: 5, patientName: 'Maya Sari', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-05-30', visitTime: '12:20', status: 'Selesai', queueNumber: 'C003', scheduleId: 3 },
-        
-        // Data bulan ini dengan berbagai status (Juni 2025)
-        { id: 16, patientId: 1, patientName: 'Budi Santoso', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-05-29', visitTime: '09:45', status: 'Selesai', queueNumber: 'A006', scheduleId: 1 },
-        { id: 17, patientId: 2, patientName: 'Ani Lestari', doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', visitDate: '2025-05-29', visitTime: '10:15', status: 'Selesai', queueNumber: 'A007', scheduleId: 4 },
-        { id: 18, patientId: 3, patientName: 'Sari Dewi', doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', visitDate: '2025-05-28', visitTime: '11:00', status: 'Selesai', queueNumber: 'B006', scheduleId: 6 },
-        { id: 19, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', visitDate: '2025-05-28', visitTime: '15:30', status: 'Selesai', queueNumber: 'D003', scheduleId: 5 },
-        { id: 20, patientId: 5, patientName: 'Maya Sari', doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', visitDate: '2025-05-27', visitTime: '14:45', status: 'Selesai', queueNumber: 'B007', scheduleId: 2 },
-        
-        // Data hari ini dengan status beragam (untuk testing real-time)
-        { id: 21, patientId: 1, patientName: 'Budi Santoso', doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', visitDate: '2025-06-02', visitTime: '11:15', status: 'Menunggu', queueNumber: 'C004', scheduleId: 3 },
-        { id: 22, patientId: 2, patientName: 'Ani Lestari', doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', visitDate: '2025-06-02', visitTime: '13:45', status: 'Sedang Dilayani', queueNumber: 'D004', scheduleId: 5 },
-        { id: 23, patientId: 3, patientName: 'Sari Dewi', doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', visitDate: '2025-06-02', visitTime: '11:30', status: 'Selesai', queueNumber: 'A008', scheduleId: 1 },
-        { id: 24, patientId: 4, patientName: 'Ahmad Fauzi', doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', visitDate: '2025-06-02', visitTime: '10:15', status: 'Menunggu', queueNumber: 'B008', scheduleId: 6 },
-        { id: 25, patientId: 5, patientName: 'Maya Sari', doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', visitDate: '2025-06-02', visitTime: '09:00', status: 'Selesai', queueNumber: 'A009', scheduleId: 4 }
-    ];
-
-    // Data jadwal dokter yang diperluas dengan informasi lebih detail
-    let detailedSchedules = [
-        { id: 1, doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', day: 'Senin', time: '09:00 - 12:00', quota: 20, registered: 15, availableSlots: 5 },
-        { id: 2, doctorId: 2, doctorName: 'Dr. Siti Aminah', polyclinic: 'Anak', day: 'Selasa', time: '14:00 - 17:00', quota: 15, registered: 10, availableSlots: 5 },
-        { id: 3, doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', day: 'Rabu', time: '10:00 - 13:00', quota: 10, registered: 8, availableSlots: 2 },
-        { id: 4, doctorId: 4, doctorName: 'Dr. Sarah Johnson', polyclinic: 'Umum', day: 'Kamis', time: '08:00 - 11:00', quota: 25, registered: 20, availableSlots: 5 },
-        { id: 5, doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', day: 'Jumat', time: '13:00 - 16:00', quota: 12, registered: 8, availableSlots: 4 },
-        { id: 6, doctorId: 6, doctorName: 'Dr. Emily Rodriguez', polyclinic: 'Anak', day: 'Sabtu', time: '09:00 - 12:00', quota: 18, registered: 12, availableSlots: 6 },
-        // Jadwal tambahan
-        { id: 7, doctorId: 1, doctorName: 'Dr. Ahmad Subarjo', polyclinic: 'Umum', day: 'Rabu', time: '14:00 - 17:00', quota: 15, registered: 12, availableSlots: 3 },
-        { id: 8, doctorId: 3, doctorName: 'Dr. Budi Prasetyo', polyclinic: 'Gigi', day: 'Jumat', time: '08:00 - 11:00', quota: 12, registered: 9, availableSlots: 3 },
-        { id: 9, doctorId: 5, doctorName: 'Dr. Michael Chen', polyclinic: 'Kardiologi', day: 'Selasa', time: '09:00 - 12:00', quota: 10, registered: 7, availableSlots: 3 }
-    ];
+    // Load data before initializing the application
+    await loadMockData();
 
     // --- Statistics Functions ---
     function updateStatistics() {
@@ -988,31 +945,63 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Mock Data Randomizer for Testing
+    // Mock Data Randomizer for Testing - Dynamic version using existing mockData.json
     function generateRandomMockData() {
-        const doctorNames = [
+        // Extract dynamic data from existing mock data
+        const doctorNames = [...new Set(doctorSchedules.map(schedule => schedule.doctorName))];
+        const polyclinics = [...new Set(doctorSchedules.map(schedule => schedule.polyclinic))];
+        const patientNames = patients.map(patient => patient.name);
+        
+        // If no data available, use fallback arrays
+        const fallbackDoctors = [
             'Dr. Ahmad Subarjo', 'Dr. Siti Aminah', 'Dr. Budi Prasetyo', 
-            'Dr. Sarah Johnson', 'Dr. Michael Chen', 'Dr. Emily Rodriguez',
-            'Dr. Indira Sari', 'Dr. Rahman Hakim', 'Dr. Lisa Wijaya',
-            'Dr. Bambang Sutrisno', 'Dr. Maya Kusuma', 'Dr. Andi Pratama'
+            'Dr. Sarah Johnson', 'Dr. Michael Chen', 'Dr. Emily Rodriguez'
         ];
-        
-        const polyclinics = ['Umum', 'Anak', 'Gigi', 'Kardiologi', 'Mata', 'THT', 'Kulit'];
-        
-        const patientNames = [
+        const fallbackPolyclinics = ['Umum', 'Anak', 'Gigi', 'Kardiologi', 'Mata', 'THT'];
+        const fallbackPatients = [
             'Budi Santoso', 'Ani Lestari', 'Sari Dewi', 'Ahmad Fauzi', 'Maya Sari',
-            'Rina Putri', 'Dedi Kurniawan', 'Lina Wati', 'Joko Widodo', 'Sri Mulyani',
-            'Hendra Gunawan', 'Dewi Sartika', 'Eko Prasetyo', 'Fitri Handayani',
-            'Agus Salim', 'Ratna Sari', 'Iwan Setiawan', 'Nurul Hidayah'
+            'Rina Putri', 'Dedi Kurniawan', 'Lina Wati', 'Joko Widodo', 'Sri Mulyani'
         ];
+        
+        const finalDoctorNames = doctorNames.length > 0 ? doctorNames : fallbackDoctors;
+        const finalPolyclinics = polyclinics.length > 0 ? polyclinics : fallbackPolyclinics;
+        const finalPatientNames = patientNames.length > 0 ? patientNames : fallbackPatients;
         
         const statuses = ['Selesai', 'Sedang Dilayani', 'Menunggu'];
-        const timeSlots = [
+        
+        // Generate time slots dynamically based on existing schedules
+        const existingTimes = [...new Set(doctorSchedules.map(schedule => {
+            // Extract times from schedule.time (e.g., "08:00 - 12:00")
+            const timeRange = schedule.time.split(' - ');
+            if (timeRange.length === 2) {
+                const startTime = timeRange[0];
+                const endTime = timeRange[1];
+                const slots = [];
+                
+                // Generate 15-minute intervals within the time range
+                const start = parseInt(startTime.split(':')[0]);
+                const end = parseInt(endTime.split(':')[0]);
+                
+                for (let hour = start; hour < end; hour++) {
+                    slots.push(`${hour.toString().padStart(2, '0')}:00`);
+                    slots.push(`${hour.toString().padStart(2, '0')}:15`);
+                    slots.push(`${hour.toString().padStart(2, '0')}:30`);
+                    slots.push(`${hour.toString().padStart(2, '0')}:45`);
+                }
+                return slots;
+            }
+            return [];
+        }).flat())];
+        
+        // Fallback time slots if no existing schedules
+        const fallbackTimeSlots = [
             '08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30', '09:45',
             '10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45',
             '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', '14:30', '14:45',
             '15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45'
         ];
+        
+        const timeSlots = existingTimes.length > 0 ? existingTimes : fallbackTimeSlots;
         
         // Generate random visits for the last 30 days
         const newVisits = [];
