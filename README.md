@@ -2,6 +2,8 @@
 
 Selamat datang di **RSU Delima Hospital Appointment System**, sebuah aplikasi web modern untuk memudahkan pasien dalam membuat janji temu dengan dokter di RSU Delima.
 
+> **📅 Last Updated: June 2025** - Continuously updated dengan fitur-fitur terbaru dan improvements
+
 ## 🌐 Live Demo
 
 **🚀 [Akses Aplikasi Live Demo](https://ristokuy.github.io/web_rsu_delima/)**
@@ -14,6 +16,26 @@ Coba langsung aplikasi RSU Delima Hospital Appointment System di GitHub Pages! D
 - ✅ **Mock Data System**: Generate realistic test data untuk comprehensive testing
 - ✅ **Fully Responsive**: Mobile dan desktop support dengan optimal layouts
 - ✅ **Real-time Features**: Live data updates dengan interaktivitas penuh
+
+## 🆕 Recent Updates & Improvements
+
+### ✨ Latest Features (June 2025)
+- **📄 Dedicated Appointment Page**: New `appoint.html` untuk enhanced booking experience
+- **🎨 Professional Visual Assets**: Added hospital logos dan background images
+- **📊 Enhanced Mock Data**: Comprehensive `mockData.json` dengan 100+ realistic user accounts
+- **🏥 Improved Hospital Branding**: Consistent RSU Delima branding throughout aplikasi
+- **🖼️ Visual Enhancement**: Professional medical imagery untuk authentic hospital atmosphere
+
+### 🔧 Technical Improvements
+- **File Organization**: Better asset management dengan dedicated `assets/` folder
+- **Image Optimization**: Optimized images untuk better performance
+- **Brand Consistency**: Unified visual identity dengan professional hospital logos
+- **Data Structure**: Well-organized JSON data structure untuk easier development
+
+### 🚀 Performance Enhancements
+- **Asset Management**: Organized asset structure untuk faster loading
+- **Visual Optimization**: Compressed images tanpa quality loss
+- **Code Organization**: Improved file structure untuk better maintainability
 
 ## 📋 Deskripsi
 
@@ -199,6 +221,9 @@ RSU Delima adalah sistem reservasi online yang memungkinkan pasien untuk:
 
 ### Advanced Features
 - **Single Page Application (SPA)**: Navigasi halaman tanpa reload dengan smooth transitions
+- **Dedicated Appointment Page**: Specialized booking interface dengan enhanced user experience
+- **Rich Visual Assets**: Professional logos dan background images untuk branding consistency
+- **Comprehensive Mock Data**: Realistic Indonesian data dengan 100+ user accounts dan medical records
 - **Local Storage & Session Storage**: Persistent data storage untuk user preferences dan session data
 - **Advanced Mock Data System**: Intelligent data generation dengan realistic Indonesian context
 - **Progressive Enhancement**: Graceful degradation untuk berbagai browser capabilities
@@ -214,17 +239,26 @@ RSU Delima adalah sistem reservasi online yang memungkinkan pasien untuk:
 ```
 web_rsu_delima/
 ├── index.html                  # Halaman utama dengan semua patient views
-├── script.js                   # Logika aplikasi JavaScript untuk patient
-├── style.css                   # Custom CSS styling untuk patient interface
+├── appoint.html               # Dedicated appointment booking page
+├── script.js                  # Logika aplikasi JavaScript untuk patient
+├── style.css                  # Custom CSS styling untuk patient interface
 ├── admin/
-│   ├── admin_index.html        # Admin console interface
-│   ├── admin_script.js         # Admin-specific JavaScript logic
-│   └── admin_style.css         # Admin console styling
+│   ├── admin_index.html       # Admin console interface
+│   ├── admin_script.js        # Admin-specific JavaScript logic
+│   └── admin_style.css        # Admin console styling
 ├── dokter/
-│   ├── dokter_index.html       # Doctor dashboard interface
-│   ├── dokter_script.js        # Doctor-specific JavaScript logic
-│   └── dokter_style.css        # Doctor dashboard styling
-└── README.md                   # Dokumentasi project
+│   ├── dokter_index.html      # Doctor dashboard interface
+│   ├── dokter_script.js       # Doctor-specific JavaScript logic
+│   └── dokter_style.css       # Doctor dashboard styling
+├── assets/
+│   ├── mockData.json          # Comprehensive mock data untuk testing
+│   ├── hero_bg.png           # Background image untuk hero section
+│   ├── room_bg.png           # Background image untuk room section
+│   └── icons/
+│       ├── logo_rsu_delima.png       # Logo RSU Delima dengan background
+│       └── logo_rsu_delima-no_bg.png # Logo RSU Delima transparan
+├── .gitignore                 # Git ignore file
+└── README.md                  # Dokumentasi project
 ```
 
 ## 🚀 Cara Menjalankan
@@ -238,9 +272,10 @@ web_rsu_delima/
 ### 💻 Opsi 2: Lokal Development
 1. **Clone atau Download** project ini
 2. **Buka file `index.html`** di browser web untuk patient interface
-3. **Akses Admin Console** melalui `admin/admin_index.html` atau login sebagai admin
-4. **Akses Doctor Dashboard** melalui `dokter/dokter_index.html` atau login sebagai dokter
-5. **Mulai menggunakan** aplikasi dengan:
+3. **Akses Appointment Page** melalui `appoint.html` untuk dedicated booking experience
+4. **Akses Admin Console** melalui `admin/admin_index.html` atau login sebagai admin
+5. **Akses Doctor Dashboard** melalui `dokter/dokter_index.html` atau login sebagai dokter
+6. **Mulai menggunakan** aplikasi dengan:
    - **Patient Login**: Email dan password apa saja (prototype mode)
    - **Admin Login**: Email dan password apa saja, pilih "Admin" pada toggle
    - **Doctor Login**: Email dan password apa saja, pilih "Dokter" pada toggle
@@ -251,6 +286,24 @@ web_rsu_delima/
 - 👤 **Pasien**: Akses ke booking appointments dan profile management
 - ⚙️ **Admin**: Akses ke admin console untuk data management dan patient visit reports
 - 👨‍⚕️ **Dokter**: Akses ke doctor dashboard untuk appointment verification dan schedule management
+
+## 🛠️ Development & Deployment
+
+### Version Control
+- **Git Integration**: Project menggunakan Git untuk version control
+- **VS Code Support**: Optimized untuk development dengan VS Code
+- **Modular Development**: Separate files untuk different roles dan functionality
+
+### Development Workflow
+1. **Frontend Development**: HTML5, CSS3, JavaScript ES6+ 
+2. **Testing**: Comprehensive mock data system untuk feature testing
+3. **Responsive Testing**: Cross-device compatibility testing
+4. **Performance Optimization**: Asset optimization dan loading strategies
+
+### Project Architecture
+- **Separation of Concerns**: Clear separation antara patient, admin, dan doctor interfaces
+- **Scalable Structure**: Modular architecture untuk easy feature additions
+- **Maintainable Code**: Clean code practices dengan consistent naming conventions
 
 ## 💻 Kompabilitas Browser
 
@@ -373,3 +426,36 @@ Aplikasi ini compatible dengan:
 - Confirmation dialogs
 - Form validation
 - Real-time feedback
+
+## 🎨 Visual Assets & Branding
+
+### Logo & Brand Identity
+- **Professional Hospital Logo**: RSU Delima brand identity dengan dua varian:
+  - `logo_rsu_delima.png`: Logo dengan background untuk kontras optimal
+  - `logo_rsu_delima-no_bg.png`: Logo transparan untuk fleksibilitas desain
+- **Consistent Branding**: Logo terintegrasi di seluruh aplikasi untuk brand recognition
+
+### Background Images
+- **Hero Section Background**: Professional medical imagery untuk first impression
+- **Room Background**: Hospital room atmosphere untuk authentic medical experience
+- **Optimized Images**: Compressed untuk fast loading tanpa mengurangi kualitas visual
+
+### Design System
+- **Medical Color Palette**: Warna-warna yang mencerminkan profesionalisme medis
+- **Typography**: Font yang mudah dibaca untuk accessibility dan profesionalisme
+- **Iconography**: Consistent medical icons untuk intuitive user interface
+
+## 📊 Data Management
+
+### Mock Data System
+- **Comprehensive User Database**: 100+ realistic user accounts dalam `mockData.json`
+- **Indonesian Context**: Data pengguna dengan nama, alamat, dan konteks Indonesia
+- **Medical Records**: Realistic medical specialties dan appointment history
+- **Testing Scenarios**: Berbagai kombinasi data untuk comprehensive testing
+- **Data Structure**: Well-organized JSON structure untuk easy data manipulation
+
+### Data Features
+- **User Profiles**: Complete patient information dengan BPJS integration
+- **Doctor Profiles**: Detailed specialist information dengan jadwal praktek
+- **Appointment History**: Historical data untuk testing reporting features
+- **Medical Specialties**: 6 poliklinik dengan realistic Indonesian medical context
