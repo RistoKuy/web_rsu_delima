@@ -824,18 +824,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 1000);
 
     // --- PATIENT MANAGEMENT FUNCTIONS ---
-    
-    window.viewPatientDetails = (patientId) => {
+      window.viewPatientDetails = (patientId) => {
         const patient = patients.find(p => p.id === patientId);
         if (!patient) {
             alert('Data pasien tidak ditemukan');
             return;
         }
 
-        const patientVisits = patientVisits.filter(v => v.patientId === patientId);
-        const visitCount = patientVisits.length;
-        const lastVisit = patientVisits.length > 0 ? 
-            patientVisits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate))[0] : null;
+        const patientVisitHistory = patientVisits.filter(v => v.patientId === patientId);
+        const visitCount = patientVisitHistory.length;
+        const lastVisit = patientVisitHistory.length > 0 ? 
+            patientVisitHistory.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate))[0] : null;
 
         const content = `
             <div class="space-y-4">
